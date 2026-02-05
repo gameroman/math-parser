@@ -2,6 +2,7 @@ type Token =
   | { type: "NUMBER"; value: number }
   | { type: "PLUS" }
   | { type: "MINUS" }
+  | { type: "MUL" }
   | { type?: never };
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
@@ -9,10 +10,10 @@ type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 /**
  * Simple lexer (tokenizer).
  */
-export function lexer(input: string): Token[] {
+export function lexer(expression: string): Token[] {
   const tokens: Token[] = [];
   let index = 0;
-  const length = input.length;
+  const length = expression.length;
 
   function isWhitespace(ch?: string): ch is " " {
     return ch === " ";
@@ -25,19 +26,17 @@ export function lexer(input: string): Token[] {
   }
 
   while (index < length) {
-    const ch = input[index];
+    const ch = expression[index];
 
-    // Skip whitespace
     if (isWhitespace(ch)) {
       index++;
       continue;
     }
 
-    // Parse a number (one or more digits)
     if (isDigit(ch)) {
       let value = 0;
       while (index < length) {
-        const d = input[index];
+        const d = expression[index];
         if (!isDigit(d)) break;
         const digit = d.charCodeAt(0) - "0".charCodeAt(0);
         value = value * 10 + digit;
@@ -59,13 +58,17 @@ export function lexer(input: string): Token[] {
       continue;
     }
 
-    // Anything else is invalid
+    if (ch === "*") {
+      tokens.push({ type: "MUL" });
+      index++;
+      continue;
+    }
+
     throw new Error(`Unexpected character '${ch}' at position ${index}`);
   }
 
   return tokens;
 }
-
 /**
  * Recursive-descent style parser/evaluator.
  */
@@ -73,16 +76,32 @@ export function evaluate(tokens: Token[]): number {
   let pos = 0;
 
   function parseExpression(): number {
-    let value = parsePrimary();
+    let value = parseTerm();
 
     while (pos < tokens.length) {
       const token = tokens[pos];
       if (token?.type === "PLUS") {
         pos++;
-        value += parsePrimary();
+        value += parseTerm();
       } else if (token?.type === "MINUS") {
         pos++;
-        value -= parsePrimary();
+        value -= parseTerm();
+      } else {
+        break;
+      }
+    }
+
+    return value;
+  }
+
+  function parseTerm(): number {
+    let value = parsePrimary();
+
+    while (pos < tokens.length) {
+      const token = tokens[pos];
+      if (token?.type === "MUL") {
+        pos++;
+        value *= parsePrimary();
       } else {
         break;
       }
@@ -114,7 +133,6 @@ export function evaluate(tokens: Token[]): number {
 
   const result = parseExpression();
 
-  // Must consume all tokens
   if (pos < tokens.length) {
     throw new Error("Unexpected tokens after end of expression");
   }
