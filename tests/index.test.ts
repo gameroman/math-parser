@@ -73,6 +73,20 @@ describe("evaluate", () => {
     getTest(100_000);
     getTest(1000_000);
   });
+
+  describe("adding and multiplying a lot of numbers", () => {
+    const getTest = (numbers: number) => {
+      const expression = "1 * 1 + ".repeat(numbers) + "0";
+      it(`should handle adding and multiplying ${numbers} numbers`, () => {
+        expect(evaluate(lexer(expression))).toEqual(numbers);
+      });
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
 });
 
 describe("serialize", () => {
