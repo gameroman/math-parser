@@ -1,4 +1,4 @@
-import type { Token } from "./parser";
+import type { Token } from "./lexer";
 
 /**
  * Converts an array of tokens into a string expression.
