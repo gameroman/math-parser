@@ -18,4 +18,9 @@ describe("serialize", () => {
     expect(serialize(parse("+1"))).toEqual("+1");
     expect(serialize(parse("-1"))).toEqual("-1");
   });
+
+  it("should serialize parentheses correctly", () => {
+    expect(serialize(parse("(1 + 1) * 2"))).toEqual("(1 + 1) * 2");
+    expect(serialize(parse("-(1 + 1)"))).toEqual("-(1 + 1)");
+  });
 });

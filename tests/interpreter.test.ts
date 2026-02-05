@@ -88,4 +88,17 @@ describe("evaluate", () => {
     getTest(100_000);
     getTest(1000_000);
   });
+
+  it("should handle parentheses", () => {
+    expect(evaluate(parse("(1 + 2) * 3"))).toEqual(9);
+    expect(evaluate(parse("2 * (3 + 4)"))).toEqual(14);
+  });
+
+  it("should handle nested parentheses", () => {
+    expect(evaluate(parse("((1 + 1) * 2) + 1"))).toEqual(5);
+  });
+
+  it("should handle unary operators with parentheses", () => {
+    expect(evaluate(parse("-(1 + 1)"))).toEqual(-2);
+  });
 });

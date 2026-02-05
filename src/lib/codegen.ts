@@ -20,31 +20,43 @@ export function serialize(tokens: Token[]): string {
       case "MUL":
         segment = "*";
         break;
+      case "LPAREN":
+        segment = "(";
+        break;
+      case "RPAREN":
+        segment = ")";
+        break;
       default:
         return acc;
     }
 
     if (i === 0) return segment;
 
-    const prevToken = tokens[i - 1];
+    const prev = tokens[i - 1];
 
-    // Unary logic: If this is a PLUS/MINUS and the previous token
-    // wasn't a number, don't add a space.
+    // No space after '(' or before ')'
+    if (prev?.type === "LPAREN" || token.type === "RPAREN") {
+      return `${acc}${segment}`;
+    }
+
+    // Unary logic (no space between sign and number/paren)
     if (
       (token.type === "PLUS" || token.type === "MINUS") &&
-      prevToken?.type !== "NUMBER"
+      prev?.type !== "NUMBER" &&
+      prev?.type !== "RPAREN"
     ) {
       return `${acc} ${segment}`;
     }
 
-    // If the CURRENT token is a number and the PREVIOUS was a unary operator,
-    // attach them without a space.
     if (
-      token.type === "NUMBER" &&
-      (prevToken?.type === "PLUS" || prevToken?.type === "MINUS")
+      (token.type === "NUMBER" || token.type === "LPAREN") &&
+      (prev?.type === "PLUS" || prev?.type === "MINUS")
     ) {
       const grandPrev = tokens[i - 2];
-      if (!grandPrev || grandPrev.type !== "NUMBER") {
+      if (
+        !grandPrev ||
+        (grandPrev.type !== "NUMBER" && grandPrev.type !== "RPAREN")
+      ) {
         return `${acc}${segment}`;
       }
     }
