@@ -33,32 +33,45 @@ export function serialize(tokens: Token[]): string {
     if (i === 0) return segment;
 
     const prev = tokens[i - 1];
+    const grandPrev = tokens[i - 2];
+
+    // 1. Helper: Determine if the CURRENT token is a Unary Operator
+    const isUnary =
+      (token.type === "PLUS" || token.type === "MINUS") &&
+      (!prev ||
+        prev.type === "LPAREN" ||
+        ["PLUS", "MINUS", "MUL"].includes(prev.type));
+
+    // 2. Helper: Determine if the PREVIOUS token was a Unary Operator
+    const prevWasUnary =
+      prev &&
+      (prev.type === "PLUS" || prev.type === "MINUS") &&
+      (!grandPrev ||
+        grandPrev.type === "LPAREN" ||
+        ["PLUS", "MINUS", "MUL"].includes(grandPrev.type));
 
     // No space after '(' or before ')'
     if (prev?.type === "LPAREN" || token.type === "RPAREN") {
       return `${acc}${segment}`;
     }
 
-    // Unary logic (no space between sign and number/paren)
-    if (
-      (token.type === "PLUS" || token.type === "MINUS") &&
-      prev?.type !== "NUMBER" &&
-      prev?.type !== "RPAREN"
-    ) {
-      return `${acc} ${segment}`;
+    // No space after a Unary Operator (e.g., "-1" or "-(...)")
+    if (prevWasUnary) {
+      return `${acc}${segment}`;
     }
 
+    // No space for implicit multiplication: 2(3) or (2)(3) or (2)3
     if (
-      (token.type === "NUMBER" || token.type === "LPAREN") &&
-      (prev?.type === "PLUS" || prev?.type === "MINUS")
+      (token.type === "LPAREN" &&
+        (prev?.type === "NUMBER" || prev?.type === "RPAREN")) ||
+      (token.type === "NUMBER" && prev?.type === "RPAREN")
     ) {
-      const grandPrev = tokens[i - 2];
-      if (
-        !grandPrev ||
-        (grandPrev.type !== "NUMBER" && grandPrev.type !== "RPAREN")
-      ) {
-        return `${acc}${segment}`;
-      }
+      return `${acc}${segment}`;
+    }
+
+    // No space between stacked unary operators
+    if (isUnary && prevWasUnary) {
+      return `${acc}${segment}`;
     }
 
     return `${acc} ${segment}`;
