@@ -82,5 +82,12 @@ describe("serialize", () => {
 
   it("serializes a simple expression", () => {
     expect(serialize(lexer("1 + 1"))).toEqual("1 + 1");
+    expect(serialize(lexer("1 - 1"))).toEqual("1 - 1");
+    expect(serialize(lexer("1 * 1"))).toEqual("1 * 1");
+  });
+
+  it("should correctly format unary operators", () => {
+    expect(serialize(lexer("+1"))).toEqual("+1");
+    expect(serialize(lexer("-1"))).toEqual("-1");
   });
 });
