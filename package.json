@@ -1,0 +1,13 @@
+{
+  "name": "math-parser",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "oxfmt --list-different || oxfmt"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.8",
+    "oxfmt": "^0.28.0",
+    "typescript": "^5.9.3"
+  }
+}
