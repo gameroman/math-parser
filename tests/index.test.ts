@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 
-import { lexer, evaluate } from "../src/lib/index";
+import { lexer, serialize, evaluate } from "../src/lib/index";
 
 describe("evaluate", () => {
   it("should handle a number", () => {
@@ -72,5 +72,15 @@ describe("evaluate", () => {
     getTest(10_000);
     getTest(100_000);
     getTest(1000_000);
+  });
+});
+
+describe("serialize", () => {
+  it("serializes a simple number", () => {
+    expect(serialize(lexer("1"))).toEqual("1");
+  });
+
+  it("serializes a simple expression", () => {
+    expect(serialize(lexer("1 + 1"))).toEqual("1 + 1");
   });
 });

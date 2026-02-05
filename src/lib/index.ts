@@ -69,6 +69,29 @@ export function lexer(expression: string): Token[] {
 
   return tokens;
 }
+
+/**
+ * Converts an array of tokens back into a string expression.
+ */
+export function serialize(tokens: Token[]): string {
+  return tokens
+    .map((token) => {
+      switch (token.type) {
+        case "NUMBER":
+          return token.value.toString();
+        case "PLUS":
+          return "+";
+        case "MINUS":
+          return "-";
+        case "MUL":
+          return "*";
+        default:
+          return "";
+      }
+    })
+    .join(" ");
+}
+
 /**
  * Recursive-descent style parser/evaluator.
  */
