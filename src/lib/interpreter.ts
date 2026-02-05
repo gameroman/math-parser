@@ -89,9 +89,13 @@ export function evaluate(tokens: Token[]): number {
   };
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
+    const isUnary = currentOp === "UNARY_PLUS" || currentOp === "UNARY_MINUS";
+
     while (
       ops.length > 0 &&
-      precedence[ops[ops.length - 1]!] >= precedence[currentOp]
+      (isUnary
+        ? precedence[ops[ops.length - 1]!] > precedence[currentOp] // Right-associative
+        : precedence[ops[ops.length - 1]!] >= precedence[currentOp]) // Left-associative
     ) {
       applyOp(pos);
     }

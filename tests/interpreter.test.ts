@@ -38,6 +38,13 @@ describe("evaluate", () => {
     expect(evaluate(parse("-1"))).toEqual(-1);
   });
 
+  it("should handle double unary operator", () => {
+    expect(evaluate(parse("--1"))).toEqual(1);
+    expect(evaluate(parse("-+1"))).toEqual(-1);
+    expect(evaluate(parse("+-1"))).toEqual(-1);
+    expect(evaluate(parse("++1"))).toEqual(1);
+  });
+
   it("should handle a simple subtraction", () => {
     expect(evaluate(parse("1 - 1"))).toEqual(0);
   });
