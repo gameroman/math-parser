@@ -23,11 +23,19 @@ describe("evaluate", () => {
     getTest(100000);
   });
 
+  it("should handle a simple positive number", () => {
+    expect(evaluate(lexer("+1"))).toEqual(1);
+  });
+
+  it("should handle a simple negative number", () => {
+    expect(evaluate(lexer("-1"))).toEqual(-1);
+  });
+
   it("should handle a simple subtraction", () => {
     expect(evaluate(lexer("1 - 1"))).toEqual(0);
   });
 
-  describe("should handle addition and subtraction", () => {
+  it("should handle addition and subtraction", () => {
     expect(evaluate(lexer("2 + 2 - 1"))).toEqual(3);
     expect(evaluate(lexer("2 - 1 + 2"))).toEqual(3);
   });

@@ -1,7 +1,8 @@
 type Token =
   | { type: "NUMBER"; value: number }
   | { type: "PLUS" }
-  | { type: "MINUS" };
+  | { type: "MINUS" }
+  | { type?: never };
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
@@ -91,12 +92,20 @@ export function evaluate(tokens: Token[]): number {
   }
 
   function parsePrimary(): number {
-    if (pos >= tokens.length) {
+    const token = tokens[pos];
+    if (!token) {
       throw new Error("Unexpected end of expression (expected a number)");
     }
-    const token = tokens[pos];
-    if (token?.type !== "NUMBER") {
-      throw new Error(`Expected a number but found '${token?.type}'`);
+    if (token.type === "PLUS") {
+      pos++;
+      return parsePrimary();
+    }
+    if (token.type === "MINUS") {
+      pos++;
+      return -parsePrimary();
+    }
+    if (token.type !== "NUMBER") {
+      throw new Error(`Expected a number but found '${token.type}'`);
     }
     const value = token.value;
     pos++;
