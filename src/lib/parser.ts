@@ -1,11 +1,10 @@
 export type Token =
-  | { type: "NUMBER"; value: number }
-  | { type: "PLUS" }
-  | { type: "MINUS" }
-  | { type: "MUL" }
-  | { type: "LPAREN" }
-  | { type: "RPAREN" }
-  | { type?: never };
+  | { type: "NUMBER"; value: number; pos: number }
+  | { type: "PLUS"; pos: number }
+  | { type: "MINUS"; pos: number }
+  | { type: "MUL"; pos: number }
+  | { type: "LPAREN"; pos: number }
+  | { type: "RPAREN"; pos: number };
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
@@ -29,6 +28,7 @@ export function parse(expression: string): Token[] {
 
   while (index < length) {
     const ch = expression[index];
+    const startPos = index; // Capture start of token
 
     if (isWhitespace(ch)) {
       index++;
@@ -44,36 +44,36 @@ export function parse(expression: string): Token[] {
         value = value * 10 + digit;
         index++;
       }
-      tokens.push({ type: "NUMBER", value });
+      tokens.push({ type: "NUMBER", value, pos: startPos });
       continue;
     }
 
     if (ch === "(") {
-      tokens.push({ type: "LPAREN" });
+      tokens.push({ type: "LPAREN", pos: startPos });
       index++;
       continue;
     }
 
     if (ch === ")") {
-      tokens.push({ type: "RPAREN" });
+      tokens.push({ type: "RPAREN", pos: startPos });
       index++;
       continue;
     }
 
     if (ch === "+") {
-      tokens.push({ type: "PLUS" });
+      tokens.push({ type: "PLUS", pos: startPos });
       index++;
       continue;
     }
 
     if (ch === "-") {
-      tokens.push({ type: "MINUS" });
+      tokens.push({ type: "MINUS", pos: startPos });
       index++;
       continue;
     }
 
     if (ch === "*") {
-      tokens.push({ type: "MUL" });
+      tokens.push({ type: "MUL", pos: startPos });
       index++;
       continue;
     }

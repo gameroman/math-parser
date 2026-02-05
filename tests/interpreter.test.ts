@@ -1,6 +1,10 @@
 import { describe, it, expect } from "bun:test";
 
-import { evaluate } from "../src/lib/interpreter";
+import {
+  evaluate,
+  MathSyntaxError,
+  MismatchedParenthesisError,
+} from "../src/lib/interpreter";
 import { parse } from "../src/lib/parser";
 
 describe("evaluate", () => {
@@ -121,5 +125,49 @@ describe("evaluate", () => {
     expect(evaluate(parse("2(2)"))).toEqual(4);
     expect(evaluate(parse("2(3+4)"))).toEqual(14);
     expect(evaluate(parse("(1+2)(3+4)"))).toEqual(21);
+  });
+});
+
+describe("evaluate - error handling", () => {
+  it("should throw MathSyntaxError for consecutive binary operators", () => {
+    // 5 * * 3 is invalid
+    expect(() => evaluate(parse("5 * * 3"))).toThrow(MathSyntaxError);
+    expect(() => evaluate(parse("5 * * 3"))).toThrow(
+      /Unexpected operator '\*'/,
+    );
+  });
+
+  it("should throw MathSyntaxError for invalid operator after opening parenthesis", () => {
+    // (*) is invalid
+    expect(() => evaluate(parse("(*)"))).toThrow(MathSyntaxError);
+    expect(() => evaluate(parse("( * 2)"))).toThrow(
+      /Unexpected '\*' after '\('/,
+    );
+  });
+
+  it("should throw MathSyntaxError for empty parentheses", () => {
+    expect(() => evaluate(parse("()"))).toThrow(MathSyntaxError);
+  });
+
+  it("should throw MismatchedParenthesisError for extra closing parenthesis", () => {
+    expect(() => evaluate(parse("1 + 2)"))).toThrow(MismatchedParenthesisError);
+  });
+
+  it("should throw MismatchedParenthesisError for missing closing parenthesis", () => {
+    expect(() => evaluate(parse("(1 + 2"))).toThrow(MismatchedParenthesisError);
+    expect(() => evaluate(parse("(1 + 2"))).toThrow(/Missing closing '\)'/);
+  });
+
+  it("should throw MathSyntaxError for trailing operators", () => {
+    expect(() => evaluate(parse("5 +"))).toThrow(MathSyntaxError);
+    expect(() => evaluate(parse("5 +"))).toThrow(/trailing operator '\+'/);
+  });
+
+  it("should throw MathSyntaxError for leading multiplication", () => {
+    expect(() => evaluate(parse("* 5"))).toThrow(MathSyntaxError);
+  });
+
+  it("should throw MathSyntaxError for invalid unary combinations", () => {
+    expect(() => evaluate(parse("5 + * 3"))).toThrow(MathSyntaxError);
   });
 });
