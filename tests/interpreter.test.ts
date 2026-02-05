@@ -101,4 +101,19 @@ describe("evaluate", () => {
   it("should handle unary operators with parentheses", () => {
     expect(evaluate(parse("-(1 + 1)"))).toEqual(-2);
   });
+
+  describe("a lot of parentheses", () => {
+    const getTest = (n: number) => {
+      const expression = "(".repeat(n) + "0" + ")".repeat(n);
+      it(`should handle ${n} parentheses`, () => {
+        expect(() => evaluate(parse(expression))).not.toThrow(RangeError);
+        expect(evaluate(parse(expression))).toEqual(0);
+      });
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
 });
