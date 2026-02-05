@@ -1,4 +1,8 @@
-type Token = { type: "NUMBER"; value: number } | { type: "PLUS" };
+type Token =
+  | { type: "NUMBER"; value: number }
+  | { type: "PLUS" }
+  | { type: "MINUS" };
+
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
 /**
@@ -42,9 +46,14 @@ export function lexer(input: string): Token[] {
       continue;
     }
 
-    // Parse '+'
     if (ch === "+") {
       tokens.push({ type: "PLUS" });
+      index++;
+      continue;
+    }
+
+    if (ch === "-") {
+      tokens.push({ type: "MINUS" });
       index++;
       continue;
     }
@@ -58,20 +67,24 @@ export function lexer(input: string): Token[] {
 
 /**
  * Recursive-descent style parser/evaluator.
- * For now it only supports addition chains like: 123 + 45 + 6
- * It is written in a way that can be easily extended later (e.g., for '-', '*', '/', parentheses, etc.).
  */
 export function evaluate(tokens: Token[]): number {
   let pos = 0;
 
-  // Parse the expression: number (+ number)*
   function parseExpression(): number {
     let value = parsePrimary();
 
-    while (pos < tokens.length && tokens[pos]?.type === "PLUS") {
-      pos++; // consume '+'
-      const right = parsePrimary();
-      value += right;
+    while (pos < tokens.length) {
+      const token = tokens[pos];
+      if (token?.type === "PLUS") {
+        pos++;
+        value += parsePrimary();
+      } else if (token?.type === "MINUS") {
+        pos++;
+        value -= parsePrimary();
+      } else {
+        break;
+      }
     }
 
     return value;
@@ -86,7 +99,7 @@ export function evaluate(tokens: Token[]): number {
       throw new Error(`Expected a number but found '${token?.type}'`);
     }
     const value = token.value;
-    pos++; // consume number
+    pos++;
     return value;
   }
 
