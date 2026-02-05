@@ -7,7 +7,7 @@ class UnexpectedEndOfExpressionError extends Error {
 }
 
 /**
- * Recursive-descent style interpreter/evaluator.
+ * Consolidated Shunting-Yard Evaluator.
  */
 export function evaluate(tokens: Token[]): number {
   const values: number[] = [];
@@ -18,13 +18,14 @@ export function evaluate(tokens: Token[]): number {
     "-": 1,
     "*": 2,
     UNARY_PLUS: 3,
-    UNARY_MINUS: 3, // Higher precedence than multiplication
+    UNARY_MINUS: 3,
     "(": 0,
   };
 
   function applyOp() {
     const op = ops.pop();
-    if (op === "UNARY_PLUS") return; // +5 is just 5
+    if (!op) return;
+    if (op === "UNARY_PLUS") return;
     if (op === "UNARY_MINUS") {
       const val = values.pop()!;
       values.push(-val);
@@ -32,7 +33,7 @@ export function evaluate(tokens: Token[]): number {
     }
 
     const right = values.pop()!;
-    const left = values.pop()!; // Binary always has two operands
+    const left = values.pop()!;
 
     if (op === "+") values.push(left + right);
     if (op === "-") values.push(left - right);
@@ -45,6 +46,25 @@ export function evaluate(tokens: Token[]): number {
     const prevToken = tokens[i - 1];
     if (!token) throw new UnexpectedEndOfExpressionError();
 
+    // --- Handle Implicit Multiplication Detection ---
+    // If current is '(' and previous was a NUMBER or ')'
+    // OR if current is NUMBER and previous was ')'
+    if (
+      prevToken &&
+      ((token.type === "LPAREN" &&
+        (prevToken.type === "NUMBER" || prevToken.type === "RPAREN")) ||
+        (token.type === "NUMBER" && prevToken.type === "RPAREN"))
+    ) {
+      const currentOp = "*";
+      while (
+        ops.length &&
+        precedence[ops[ops.length - 1]!] >= precedence[currentOp]
+      ) {
+        applyOp();
+      }
+      ops.push(currentOp);
+    }
+
     if (token.type === "NUMBER") {
       values.push(token.value);
     } else if (token.type === "LPAREN") {
@@ -55,7 +75,6 @@ export function evaluate(tokens: Token[]): number {
       }
       ops.pop();
     } else {
-      // Determine if this is a unary or binary operator
       const isUnary =
         !prevToken ||
         prevToken.type === "LPAREN" ||

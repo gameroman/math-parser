@@ -116,4 +116,10 @@ describe("evaluate", () => {
     getTest(100_000);
     getTest(1000_000);
   });
+
+  it("should handle implicit multiplication", () => {
+    expect(evaluate(parse("2(2)"))).toEqual(4);
+    expect(evaluate(parse("2(3+4)"))).toEqual(14);
+    expect(evaluate(parse("(1+2)(3+4)"))).toEqual(21);
+  });
 });
