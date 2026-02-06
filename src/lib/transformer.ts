@@ -1,11 +1,13 @@
-import { MathSyntaxError } from "./errors";
 import type { Token } from "./lexer";
+
+import { MathSyntaxError } from "./errors";
 import { getSym } from "./symbol";
 
-export type TransformedToken =
-  | Token
+export type UnaryToken =
   | { type: "UNARY_PLUS"; pos: number }
   | { type: "UNARY_MINUS"; pos: number };
+
+export type TransformedToken = Token | UnaryToken;
 
 export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
   if (tokens.length === 0) return [];

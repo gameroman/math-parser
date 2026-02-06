@@ -1,3 +1,4 @@
+import type { TokenNumber } from "./lexer";
 import type { TransformedToken } from "./transformer";
 
 const symbolMap = {
@@ -10,5 +11,8 @@ const symbolMap = {
   RPAREN: ")",
 } satisfies Record<string, string>;
 
+export const prettifyNumber = (t: TokenNumber) =>
+  t.fraction ? `${t.whole}.${t.fraction}` : t.whole;
+
 export const getSym = (t: TransformedToken): string =>
-  t.type === "NUMBER" ? t.value.toString() : symbolMap[t.type];
+  t.type === "NUMBER" ? prettifyNumber(t) : symbolMap[t.type];

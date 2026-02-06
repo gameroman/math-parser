@@ -1,4 +1,5 @@
 import type { TransformedToken } from "./transformer";
+
 import {
   InterpreterError,
   UnexpectedEndOfExpressionError,
@@ -7,35 +8,60 @@ import {
 } from "./errors";
 
 const precedence = {
-  "+": 1,
-  "-": 1,
-  "*": 2,
+  ADD: 1,
+  SUBTRACT: 1,
+  MULTIPLY: 2,
   UNARY_PLUS: 3,
   UNARY_MINUS: 3,
-  "(": 0,
+  LPAREN: 0,
 } as const;
 
 type StackOp = keyof typeof precedence;
 
-export function evaluate(tokens: TransformedToken[]): number {
-  if (tokens.length === 0) return 0;
+export type HighPrecision = {
+  value: bigint;
+  scale: number;
+};
 
-  const values: number[] = [];
+function isUnaryOperation(op: StackOp) {
+  return op === "UNARY_PLUS" || op === "UNARY_MINUS";
+}
+
+/**
+ * Normalizes two high-precision numbers to the same scale.
+ */
+function alignScales(
+  a: HighPrecision,
+  b: HighPrecision,
+): [bigint, bigint, number] {
+  const maxScale = Math.max(a.scale, b.scale);
+  const aVal = a.value * 10n ** BigInt(maxScale - a.scale);
+  const bVal = b.value * 10n ** BigInt(maxScale - b.scale);
+  return [aVal, bVal, maxScale];
+}
+
+export function evaluate(tokens: TransformedToken[]): HighPrecision {
+  if (tokens.length === 0) {
+    throw new InterpreterError("Empty expression");
+  }
+
+  const values: HighPrecision[] = [];
   const ops: StackOp[] = [];
 
   const applyOp = (pos?: number) => {
     const op = ops.pop();
-    if (!op || op === "(") return;
+    if (!op || op === "LPAREN") return;
 
-    // Handle Unary
-    if (op === "UNARY_PLUS" || op === "UNARY_MINUS") {
+    if (isUnaryOperation(op)) {
       const val = values.pop();
       if (val === undefined) throw new UnexpectedEndOfExpressionError();
-      values.push(op === "UNARY_MINUS" ? -val : val);
+      values.push({
+        value: op === "UNARY_MINUS" ? -val.value : val.value,
+        scale: val.scale,
+      });
       return;
     }
 
-    // Handle Binary
     const right = values.pop();
     const left = values.pop();
 
@@ -43,13 +69,22 @@ export function evaluate(tokens: TransformedToken[]): number {
       throw new InsufficientOperandsError(pos);
     }
 
-    if (op === "+") values.push(left + right);
-    else if (op === "-") values.push(left - right);
-    else if (op === "*") values.push(left * right);
+    if (op === "ADD") {
+      const [l, r, scale] = alignScales(left, right);
+      values.push({ value: l + r, scale });
+    } else if (op === "SUBTRACT") {
+      const [l, r, scale] = alignScales(left, right);
+      values.push({ value: l - r, scale });
+    } else if (op === "MULTIPLY") {
+      values.push({
+        value: left.value * right.value,
+        scale: left.scale + right.scale,
+      });
+    }
   };
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
-    const isUnary = currentOp === "UNARY_PLUS" || currentOp === "UNARY_MINUS";
+    const isUnary = isUnaryOperation(currentOp);
 
     while (
       ops.length > 0 &&
@@ -67,65 +102,71 @@ export function evaluate(tokens: TransformedToken[]): number {
     if (!token) throw new UnexpectedEndOfExpressionError();
     const prevToken = tokens[i - 1];
 
-    // --- 1. Handle Implicit Multiplication ---
-    // (e.g., 2(3) or (2)3)
+    // Implicit Multiplication logic
     if (
       prevToken &&
       ((token.type === "LPAREN" &&
         (prevToken.type === "NUMBER" || prevToken.type === "RPAREN")) ||
         (token.type === "NUMBER" && prevToken.type === "RPAREN"))
     ) {
-      pushOpWithPrecedence("*", token.pos);
+      pushOpWithPrecedence("MULTIPLY", token.pos);
     }
 
-    // --- 2. Shunting-Yard Logic ---
     switch (token.type) {
-      case "NUMBER":
-        values.push(token.value);
+      case "NUMBER": {
+        const frac = token.fraction || "";
+        values.push({
+          value: BigInt(token.whole + frac),
+          scale: frac.length,
+        });
         break;
-
-      case "LPAREN":
-        ops.push("(");
+      }
+      case "LPAREN": {
+        ops.push("LPAREN");
         break;
-
+      }
       case "RPAREN": {
         let foundMatch = false;
         while (ops.length > 0) {
-          if (ops[ops.length - 1] === "(") {
+          if (ops[ops.length - 1] === "LPAREN") {
             foundMatch = true;
             break;
           }
           applyOp(token.pos);
         }
         if (!foundMatch) throw new MismatchedParenthesisError(token.pos);
-        ops.pop(); // Remove '('
+        ops.pop();
         break;
       }
-
-      case "PLUS":
-        pushOpWithPrecedence("+", token.pos);
+      case "PLUS": {
+        pushOpWithPrecedence("ADD", token.pos);
         break;
-      case "MINUS":
-        pushOpWithPrecedence("-", token.pos);
+      }
+      case "MINUS": {
+        pushOpWithPrecedence("SUBTRACT", token.pos);
         break;
-      case "MUL":
-        pushOpWithPrecedence("*", token.pos);
+      }
+      case "MUL": {
+        pushOpWithPrecedence("MULTIPLY", token.pos);
         break;
-      case "UNARY_PLUS":
+      }
+      case "UNARY_PLUS": {
         pushOpWithPrecedence("UNARY_PLUS", token.pos);
         break;
-      case "UNARY_MINUS":
+      }
+      case "UNARY_MINUS": {
         pushOpWithPrecedence("UNARY_MINUS", token.pos);
         break;
+      }
     }
   }
 
-  // --- 3. Finalization ---
   while (ops.length > 0) {
     const top = ops[ops.length - 1];
     const lastPos = tokens[tokens.length - 1]?.pos ?? 0;
-    if (top === "(")
+    if (top === "LPAREN") {
       throw new MismatchedParenthesisError(lastPos, "Missing closing ')'");
+    }
     applyOp(lastPos);
   }
 

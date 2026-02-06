@@ -1,5 +1,17 @@
+import { MathSyntaxError } from "./errors";
+
+interface TokenBase {
+  pos: number;
+}
+
+export interface TokenNumber extends TokenBase {
+  type: "NUMBER";
+  whole: string;
+  fraction?: string;
+}
+
 export type Token =
-  | { type: "NUMBER"; value: number; pos: number }
+  | TokenNumber
   | { type: "PLUS"; pos: number }
   | { type: "MINUS"; pos: number }
   | { type: "MUL"; pos: number }
@@ -18,17 +30,22 @@ function isDigit(ch?: string): ch is Digit {
   return ch >= "0" && ch <= "9";
 }
 
+export interface LexerOptions {
+  decimalSeparator?: "." | ",";
+}
+
 /**
  * Simple lexer (tokenizer).
  */
-export function parse(expression: string): Token[] {
+export function parse(expression: string, options: LexerOptions = {}): Token[] {
+  const { decimalSeparator = "." } = options;
   const tokens: Token[] = [];
   let index = 0;
   const length = expression.length;
 
   while (index < length) {
     const ch = expression[index];
-    const startPos = index; // Capture start of token
+    const startPos = index;
 
     if (isWhitespace(ch)) {
       index++;
@@ -36,15 +53,36 @@ export function parse(expression: string): Token[] {
     }
 
     if (isDigit(ch)) {
-      let value = 0;
-      while (index < length) {
-        const d = expression[index];
-        if (!isDigit(d)) break;
-        const digit = d.charCodeAt(0) - "0".charCodeAt(0);
-        value = value * 10 + digit;
+      let whole = "";
+      let fraction: string | undefined = undefined;
+
+      // Parse whole part
+      while (index < length && isDigit(expression[index])) {
+        whole += expression[index];
         index++;
       }
-      tokens.push({ type: "NUMBER", value, pos: startPos });
+
+      // Parse fractional part
+      if (index < length && expression[index] === decimalSeparator) {
+        index++; // Skip the separator
+
+        const fracStart = index;
+        let fracBuffer = "";
+        while (index < length && isDigit(expression[index])) {
+          fracBuffer += expression[index];
+          index++;
+        }
+
+        if (index === fracStart) {
+          throw new MathSyntaxError(
+            `Expected digit after decimal separator`,
+            index,
+          );
+        }
+        fraction = fracBuffer;
+      }
+
+      tokens.push({ type: "NUMBER", whole, fraction, pos: startPos });
       continue;
     }
 

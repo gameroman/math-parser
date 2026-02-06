@@ -1,5 +1,7 @@
 import type { Token } from "./lexer";
 
+import { prettifyNumber } from "./symbol";
+
 /**
  * Converts an array of tokens into a string expression.
  */
@@ -8,26 +10,33 @@ export function serialize(tokens: Token[]): string {
     let segment = "";
 
     switch (token.type) {
-      case "NUMBER":
-        segment = token.value.toString();
+      case "NUMBER": {
+        segment = prettifyNumber(token);
         break;
-      case "PLUS":
+      }
+      case "PLUS": {
         segment = "+";
         break;
-      case "MINUS":
+      }
+      case "MINUS": {
         segment = "-";
         break;
-      case "MUL":
+      }
+      case "MUL": {
         segment = "*";
         break;
-      case "LPAREN":
+      }
+      case "LPAREN": {
         segment = "(";
         break;
-      case "RPAREN":
+      }
+      case "RPAREN": {
         segment = ")";
         break;
-      default:
+      }
+      default: {
         return acc;
+      }
     }
 
     if (i === 0) return segment;
