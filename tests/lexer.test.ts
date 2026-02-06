@@ -10,5 +10,7 @@ describe("parse", () => {
 
   it("shoud throw LexerError for invalid decimal number", () => {
     expect(() => tokenize("1..2")).toThrow(LexerError);
+    expect(() => tokenize("1.2.")).toThrow(LexerError);
+    expect(() => tokenize(".1.2")).toThrow(LexerError);
   });
 });

@@ -56,18 +56,13 @@ export function tokenize(
       continue;
     }
 
-    if (isDigit(ch)) {
+    if (isDigit(ch) || ch === decimalSeparator) {
       let whole = "";
       let fraction: string | undefined = undefined;
 
-      // Parse whole part
-      while (index < length && isDigit(expression[index])) {
-        whole += expression[index];
-        index++;
-      }
-
-      // Parse fractional part
-      if (index < length && expression[index] === decimalSeparator) {
+      // Handle implicit whole part (e.g., ".1")
+      if (ch === decimalSeparator) {
+        whole = "0";
         index++; // Skip the separator
 
         const fracStart = index;
@@ -77,10 +72,46 @@ export function tokenize(
           index++;
         }
 
+        // Check for decimal separator within fractional part (e.g., "1.2." or ".1.2")
+        if (index < length && expression[index] === decimalSeparator) {
+          throw new LexerError(`Invalid decimal number format`, index);
+        }
+
         if (index === fracStart) {
           throw new LexerError(`Expected digit after decimal separator`, index);
         }
         fraction = fracBuffer;
+      } else {
+        // Parse whole part
+        while (index < length && isDigit(expression[index])) {
+          whole += expression[index];
+          index++;
+        }
+
+        // Parse fractional part
+        if (index < length && expression[index] === decimalSeparator) {
+          // Check for consecutive decimal separators (e.g., "1..2")
+          if (
+            index + 1 < length &&
+            expression[index + 1] === decimalSeparator
+          ) {
+            throw new LexerError(`Invalid decimal number format`, index);
+          }
+          index++; // Skip the separator
+
+          const fracStart = index;
+          let fracBuffer = "";
+          while (index < length && isDigit(expression[index])) {
+            fracBuffer += expression[index];
+            index++;
+          }
+
+          if (index === fracStart) {
+            fraction = "0";
+          } else {
+            fraction = fracBuffer;
+          }
+        }
       }
 
       tokens.push({ type: "NUMBER", whole, fraction, pos: startPos });

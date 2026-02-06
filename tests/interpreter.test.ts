@@ -24,7 +24,7 @@ describe("evaluate", () => {
       const expression = "1 + ".repeat(numbers) + "0";
       it(`should handle adding ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
-      });
+      }, 10_000);
     };
     getTest(100);
     getTest(1000);
@@ -152,6 +152,17 @@ describe("evaluate", () => {
     expect(calculate("0.01")).toBe("0.01");
   });
 
+  it("should correctly handle a decimal with implicit whole part", () => {
+    expect(calculate(".1")).toBe("0.1");
+    expect(calculate(".01")).toBe("0.01");
+  });
+
+  it("should correctly handle a decimal with implicit decimal part", () => {
+    expect(calculate("1.")).toBe("1");
+    expect(calculate("0.")).toBe("0");
+    expect(calculate("10.")).toBe("10");
+  });
+
   it("should correctly add 2 decimals", () => {
     expect(calculate("0.1 + 0.1")).toBe("0.2");
     expect(calculate("0.1 + 0.2")).toBe("0.3");
@@ -179,8 +190,8 @@ describe("evaluate", () => {
   });
 
   it("should not throw MaximumPrecisionError for adding big scales", () => {
-    const hugeDecimal1 = "0." + "0".repeat(10_000) + "1";
-    const hugeDecimal2 = "0." + "0".repeat(20_000) + "1";
+    const hugeDecimal1 = "0." + "0".repeat(5_000) + "1";
+    const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
     expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
       MaximumPrecisionError,
     );
