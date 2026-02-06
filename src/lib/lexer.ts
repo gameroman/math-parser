@@ -1,4 +1,4 @@
-import { MathSyntaxError } from "./errors";
+import { LexerError } from "./errors";
 
 interface TokenBase {
   pos: number;
@@ -74,10 +74,7 @@ export function parse(expression: string, options: LexerOptions = {}): Token[] {
         }
 
         if (index === fracStart) {
-          throw new MathSyntaxError(
-            `Expected digit after decimal separator`,
-            index,
-          );
+          throw new LexerError(`Expected digit after decimal separator`, index);
         }
         fraction = fracBuffer;
       }
@@ -116,7 +113,7 @@ export function parse(expression: string, options: LexerOptions = {}): Token[] {
       continue;
     }
 
-    throw new Error(`Unexpected character '${ch}' at position ${index}`);
+    throw new LexerError(`Unexpected character '${ch}'`, index);
   }
 
   return tokens;

@@ -1,10 +1,10 @@
 import type { TransformedToken } from "./transformer";
 
 import {
-  InterpreterError,
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
   InsufficientOperandsError,
+  EmptyExpressionError,
 } from "./errors";
 
 const precedence = {
@@ -42,7 +42,7 @@ function alignScales(
 
 export function evaluate(tokens: TransformedToken[]): HighPrecision {
   if (tokens.length === 0) {
-    throw new InterpreterError("Empty expression");
+    throw new EmptyExpressionError();
   }
 
   const values: HighPrecision[] = [];
@@ -170,12 +170,8 @@ export function evaluate(tokens: TransformedToken[]): HighPrecision {
     applyOp(lastPos);
   }
 
-  if (values.length !== 1) {
-    throw new InterpreterError(
-      "Incomplete expression",
-      tokens[tokens.length - 1]?.pos,
-    );
-  }
+  const v = values[values.length - 1];
+  if (!v) throw new UnexpectedEndOfExpressionError();
 
-  return values[0]!;
+  return v;
 }

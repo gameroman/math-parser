@@ -1,7 +1,13 @@
 import { describe, it, expect } from "bun:test";
 
 import { calculate } from "../src";
-import { MathSyntaxError, MismatchedParenthesisError } from "../src/lib/errors";
+import {
+  EmptyExpressionError,
+  IncompleteExpressionError,
+  MathSyntaxError,
+  MismatchedParenthesisError,
+  UnexpectedEndOfExpressionError,
+} from "../src/lib/errors";
 
 describe("evaluate", () => {
   it("should handle a number", () => {
@@ -184,8 +190,9 @@ describe("evaluate - error handling", () => {
     expect(() => calculate("(1 + 2")).toThrow(/Missing closing '\)'/);
   });
 
-  it("should throw MathSyntaxError for trailing operators", () => {
+  it("should throw IncompleteExpressionError for trailing operators", () => {
     expect(() => calculate("5 +")).toThrow(MathSyntaxError);
+    expect(() => calculate("5 +")).toThrow(IncompleteExpressionError);
     expect(() => calculate("5 +")).toThrow(/trailing operator '\+'/);
   });
 
@@ -195,5 +202,13 @@ describe("evaluate - error handling", () => {
 
   it("should throw MathSyntaxError for invalid unary combinations", () => {
     expect(() => calculate("5 + * 3")).toThrow(MathSyntaxError);
+  });
+
+  it("should throw EmptyExpressionError for empty expression", () => {
+    expect(() => calculate("")).toThrow(EmptyExpressionError);
+  });
+
+  it("should throw UnexpectedEndOfExpressionError for operation-only expression", () => {
+    expect(() => calculate("-")).toThrow(UnexpectedEndOfExpressionError);
   });
 });

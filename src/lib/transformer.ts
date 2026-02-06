@@ -1,6 +1,6 @@
 import type { Token } from "./lexer";
 
-import { MathSyntaxError } from "./errors";
+import { IncompleteExpressionError, MathSyntaxError } from "./errors";
 import { getSym } from "./symbol";
 
 export type UnaryToken =
@@ -60,8 +60,8 @@ export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
   if (last && ["PLUS", "MINUS", "MUL"].includes(last.type)) {
     // Note: UNARY tokens are fine at the end (e.g., "5 + -"),
     // but binary ones aren't ("5 +").
-    throw new MathSyntaxError(
-      `Incomplete expression: trailing operator '${getSym(last)}'`,
+    throw new IncompleteExpressionError(
+      `trailing operator '${getSym(last)}'`,
       last.pos,
     );
   }

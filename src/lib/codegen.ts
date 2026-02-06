@@ -7,7 +7,7 @@ import { prettifyNumber } from "./symbol";
  */
 export function serialize(tokens: Token[]): string {
   return tokens.reduce((acc, token, i) => {
-    let segment = "";
+    let segment: string;
 
     switch (token.type) {
       case "NUMBER": {
@@ -33,9 +33,6 @@ export function serialize(tokens: Token[]): string {
       case "RPAREN": {
         segment = ")";
         break;
-      }
-      default: {
-        return acc;
       }
     }
 
