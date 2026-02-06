@@ -81,84 +81,83 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     throw new EmptyExpressionError();
   }
 
-  const values: HighPrecision[] = [];
+  const stackN: bigint[] = [];
+  const stackD: bigint[] = [];
   const ops: StackOp[] = [];
 
   const applyOp = (pos?: number) => {
     const op = ops.pop();
     if (!op || op === "LPAREN") return;
 
-    const right = values.pop();
-    if (right === undefined) throw new UnexpectedEndOfExpressionError();
+    const rN = stackN.pop();
+    const rD = stackD.pop();
+    if (rN === undefined || rD === undefined)
+      throw new UnexpectedEndOfExpressionError();
 
     if (isUnaryOperation(op)) {
-      values.push({ n: op === "UNARY_MINUS" ? -right.n : right.n, d: right.d });
+      stackN.push(op === "UNARY_MINUS" ? -rN : rN);
+      stackD.push(rD);
       return;
     }
 
-    const left = values.pop();
-    if (left === undefined) throw new InsufficientOperandsError(pos);
+    const lN = stackN.pop();
+    const lD = stackD.pop();
+    if (lN === undefined || lD === undefined)
+      throw new InsufficientOperandsError(pos);
+
+    let resN: bigint;
+    let resD: bigint;
 
     switch (op) {
       case "ADD":
       case "SUBTRACT": {
         const isSub = op === "SUBTRACT";
-        let resN: bigint;
-        let resD: bigint;
-
-        if (left.d === right.d) {
-          resN = isSub ? left.n - right.n : left.n + right.n;
-          resD = left.d;
+        if (lD === rD) {
+          resN = isSub ? lN - rN : lN + rN;
+          resD = lD;
         } else {
-          const commonFactor = gcd(left.d, right.d);
-
-          if (commonFactor === 1n) {
-            resN = isSub
-              ? left.n * right.d - right.n * left.d
-              : left.n * right.d + right.n * left.d;
-            resD = left.d * right.d;
+          // LCM approach to keep numbers smaller
+          const common = gcd(lD, rD);
+          if (common === 1n) {
+            resN = isSub ? lN * rD - rN * lD : lN * rD + rN * lD;
+            resD = lD * rD;
           } else {
-            const multiplierLeft = right.d / commonFactor;
-            const multiplierRight = left.d / commonFactor;
-
-            resN = isSub
-              ? left.n * multiplierLeft - right.n * multiplierRight
-              : left.n * multiplierLeft + right.n * multiplierRight;
-            resD = left.d * multiplierLeft;
+            const mLeft = rD / common;
+            const mRight = lD / common;
+            resN = isSub ? lN * mLeft - rN * mRight : lN * mLeft + rN * mRight;
+            resD = lD * mLeft;
           }
-        }
-
-        if (resD === 1n) {
-          values.push({ n: resN, d: 1n });
-        } else if (resD > SIMPLIFY_THRESHOLD) {
-          values.push(simplify(resN, resD));
-        } else {
-          values.push({ n: resN, d: resD });
         }
         break;
       }
       case "MULTIPLY": {
-        if (left.d === 1n && right.d === 1n) {
-          values.push({ n: left.n * right.n, d: 1n });
+        if (lD === 1n && rD === 1n) {
+          resN = lN * rN;
+          resD = 1n;
         } else {
-          const g1 = gcd(left.n, right.d);
-          const g2 = gcd(right.n, left.d);
-          values.push({
-            n: (left.n / g1) * (right.n / g2),
-            d: (left.d / g2) * (right.d / g1),
-          });
+          const g1 = gcd(lN, rD);
+          const g2 = gcd(rN, lD);
+          resN = (lN / g1) * (rN / g2);
+          resD = (lD / g2) * (rD / g1);
         }
         break;
       }
       case "DIVIDE": {
-        const g1 = gcd(left.n, right.n);
-        const g2 = gcd(right.d, left.d);
-        values.push({
-          n: (left.n / g1) * (right.d / g2),
-          d: (left.d / g2) * (right.n / g1),
-        });
+        const g1 = gcd(lN, rN);
+        const g2 = gcd(rD, lD);
+        resN = (lN / g1) * (rD / g2);
+        resD = (lD / g2) * (rN / g1);
         break;
       }
+    }
+
+    if (resD > SIMPLIFY_THRESHOLD) {
+      const reduced = simplify(resN, resD);
+      stackN.push(reduced.n);
+      stackD.push(reduced.d);
+    } else {
+      stackN.push(resN);
+      stackD.push(resD);
     }
   };
 
@@ -196,13 +195,14 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         if (fl > MAX_PRECISION) {
           throw new MaximumPrecisionError(fl, MAX_PRECISION);
         }
-        // If it's an integer, don't bother with simplify()
         if (fl === 0) {
-          values.push({ n, d: 1n });
+          stackN.push(n);
+          stackD.push(1n);
         } else {
-          // We simplify numbers on input to keep the starting denominators small
           const d = 10n ** BigInt(fl);
-          values.push(simplify(n, d));
+          const reduced = simplify(n, d);
+          stackN.push(reduced.n);
+          stackD.push(reduced.d);
         }
         break;
       }
@@ -259,8 +259,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     applyOp(lastPos);
   }
 
-  const result = values[0];
-  if (!result) throw new UnexpectedEndOfExpressionError();
+  const finalN = stackN.pop();
+  const finalD = stackD.pop();
+  if (finalN === undefined || finalD === undefined)
+    throw new UnexpectedEndOfExpressionError();
 
-  return simplify(result.n, result.d);
+  return simplify(finalN, finalD);
 }
