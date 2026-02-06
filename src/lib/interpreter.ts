@@ -30,10 +30,13 @@ export type HighPrecision = {
  * Shifting is generally faster than the modulo operator for large integers.
  */
 function gcd(a: bigint, b: bigint): bigint {
-  a = a < 0n ? -a : a;
-  b = b < 0n ? -b : b;
+  if (a === b) return a;
+  if (a === 1n || b === 1n) return 1n;
   if (a === 0n) return b;
   if (b === 0n) return a;
+
+  a = a < 0n ? -a : a;
+  b = b < 0n ? -b : b;
 
   let shift = 0n;
   while (((a | b) & 1n) === 0n) {
