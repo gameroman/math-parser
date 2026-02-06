@@ -12,6 +12,7 @@ describe("serialize", () => {
     expect(serialize(parse("1 + 1"))).toEqual("1 + 1");
     expect(serialize(parse("1 - 1"))).toEqual("1 - 1");
     expect(serialize(parse("1 * 1"))).toEqual("1 * 1");
+    expect(serialize(parse("1 / 1"))).toEqual("1 / 1");
   });
 
   it("should correctly format unary operators", () => {

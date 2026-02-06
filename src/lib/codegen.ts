@@ -26,6 +26,10 @@ export function serialize(tokens: Token[]): string {
         segment = "*";
         break;
       }
+      case "DIV": {
+        segment = "/";
+        break;
+      }
       case "LPAREN": {
         segment = "(";
         break;

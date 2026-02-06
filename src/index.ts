@@ -2,30 +2,59 @@ import { evaluate, type HighPrecision } from "./lib/interpreter";
 import { parse } from "./lib/lexer";
 import { applyUnaryTransformation } from "./lib/transformer";
 
+// Use a Discriminated Union for type-safe options
+export type FormatOptions =
+  | {
+      format?: "decimal";
+      /** Maximum decimal places. Defaults to 20. */
+      maxDecimals?: number;
+    }
+  | { format: "precise" };
+
 /**
- * Converts BigInt + Scale to String without using Regex.
+ * Converts Rational Fraction (n/d) to a Decimal or Fraction String.
  */
-export function formatResult(hp: HighPrecision): string {
-  let isNegative = hp.value < 0n;
-  let absoluteValue = isNegative ? -hp.value : hp.value;
-  let s = absoluteValue.toString();
+export function formatResult(
+  hp: HighPrecision,
+  options: FormatOptions = {},
+): string {
+  const { n, d } = hp;
 
-  if (hp.scale <= 0) {
-    // Integer result (or scale shifted left)
-    const result = s + "0".repeat(Math.abs(hp.scale));
-    return isNegative && result !== "0" ? "-" + result : result;
+  if (d === 0n) return "NaN";
+
+  // --- Fraction Format Logic ---
+  if (options.format === "precise") {
+    if (d === 1n) return n.toString();
+    return `${n}/${d}`;
   }
 
-  // Pad leading zeros if necessary (e.g., .001)
-  if (s.length <= hp.scale) {
-    s = s.padStart(hp.scale + 1, "0");
+  // --- Decimal Format Logic ---
+  const maxDecimals =
+    options.format === "decimal" ? (options.maxDecimals ?? 20) : 20;
+
+  const isNegative = n < 0n;
+  const absN = n < 0n ? -n : n;
+
+  const integerPart = (absN / d).toString();
+  let remainder = absN % d;
+
+  if (remainder === 0n) {
+    const res = (isNegative ? "-" : "") + integerPart;
+    return res === "-0" ? "0" : res;
   }
 
-  const dotPos = s.length - hp.scale;
-  let integerPart = s.slice(0, dotPos);
-  let fractionalPart = s.slice(dotPos);
+  let fractionalPart = "";
+  let count = 0;
 
-  // Manual trimming of trailing zeros from the fractional part
+  // Long division simulation
+  while (remainder !== 0n && count < maxDecimals) {
+    remainder *= 10n;
+    fractionalPart += (remainder / d).toString();
+    remainder %= d;
+    count++;
+  }
+
+  // Trim trailing zeros
   let lastNonZero = -1;
   for (let i = fractionalPart.length - 1; i >= 0; i--) {
     if (fractionalPart[i] !== "0") {
@@ -34,21 +63,24 @@ export function formatResult(hp: HighPrecision): string {
     }
   }
 
-  const trimmedFraction =
+  const finalFraction =
     lastNonZero === -1 ? "" : fractionalPart.slice(0, lastNonZero + 1);
   const result =
-    trimmedFraction === "" ? integerPart : integerPart + "." + trimmedFraction;
+    finalFraction === "" ? integerPart : `${integerPart}.${finalFraction}`;
+  const sign = isNegative && result !== "0" ? "-" : "";
 
-  return isNegative && result !== "0" ? "-" + result : result;
+  return sign + result;
 }
 
 /**
  * The main entry point for the library.
- * It pipes the expression through the full compilation pipeline.
  */
-export function calculate(expression: string): string {
+export function calculate(
+  expression: string,
+  options: FormatOptions = {},
+): string {
   const tokens = parse(expression);
   const transformed = applyUnaryTransformation(tokens);
   const result = evaluate(transformed);
-  return formatResult(result);
+  return formatResult(result, options);
 }

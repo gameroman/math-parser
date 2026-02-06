@@ -15,6 +15,7 @@ export type Token =
   | { type: "PLUS"; pos: number }
   | { type: "MINUS"; pos: number }
   | { type: "MUL"; pos: number }
+  | { type: "DIV"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number };
 
@@ -109,6 +110,12 @@ export function parse(expression: string, options: LexerOptions = {}): Token[] {
 
     if (ch === "*") {
       tokens.push({ type: "MUL", pos: startPos });
+      index++;
+      continue;
+    }
+
+    if (ch === "/") {
+      tokens.push({ type: "DIV", pos: startPos });
       index++;
       continue;
     }

@@ -7,6 +7,7 @@ const symbolMap = {
   MINUS: "-",
   UNARY_MINUS: "-",
   MUL: "*",
+  DIV: "/",
   LPAREN: "(",
   RPAREN: ")",
 } satisfies Record<string, string>;

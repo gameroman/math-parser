@@ -9,6 +9,14 @@ export type UnaryToken =
 
 export type TransformedToken = Token | UnaryToken;
 
+function isThisUnaryToken(prev?: Token) {
+  return (
+    !prev ||
+    prev.type === "LPAREN" ||
+    ["PLUS", "MINUS", "MUL", "DIV"].includes(prev.type)
+  );
+}
+
 export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
   if (tokens.length === 0) return [];
 
@@ -17,14 +25,13 @@ export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
 
     // --- 1. Syntax Validation ---
 
-    // '*' cannot be at the start, after '(', or after another operator
-    if (token.type === "MUL") {
-      if (
-        !prev ||
-        prev.type === "LPAREN" ||
-        ["PLUS", "MINUS", "MUL"].includes(prev.type)
-      ) {
-        throw new MathSyntaxError("Unexpected operator '*'", token.pos);
+    // '*' or '/' cannot be at the start, after '(', or after another operator
+    if (token.type === "MUL" || token.type === "DIV") {
+      if (isThisUnaryToken(prev)) {
+        throw new MathSyntaxError(
+          `Unexpected operator '${getSym(token)}'`,
+          token.pos,
+        );
       }
     }
 
@@ -39,10 +46,8 @@ export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
       return token;
     }
 
-    const isUnary =
-      !prev ||
-      prev.type === "LPAREN" ||
-      ["PLUS", "MINUS", "MUL"].includes(prev.type);
+    // A '+' or '-' is unary if it's at the start or follows an operator/paren
+    const isUnary = isThisUnaryToken(prev);
 
     if (isUnary) {
       return {
@@ -57,9 +62,7 @@ export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
   // --- 3. Trailing Operator Validation ---
 
   const last = result[result.length - 1];
-  if (last && ["PLUS", "MINUS", "MUL"].includes(last.type)) {
-    // Note: UNARY tokens are fine at the end (e.g., "5 + -"),
-    // but binary ones aren't ("5 +").
+  if (last && ["PLUS", "MINUS", "MUL", "DIV"].includes(last.type)) {
     throw new IncompleteExpressionError(
       `trailing operator '${getSym(last)}'`,
       last.pos,
