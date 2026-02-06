@@ -170,13 +170,13 @@ describe("evaluate", () => {
   });
 
   it("should not throw MaximumPrecisionError for big scale", () => {
-    const bigDecimal = "0." + "0".repeat(50_000) + "1";
+    const bigDecimal = "0." + "0".repeat(20_000) + "1";
     expect(() => calculate(bigDecimal)).not.toThrow(MaximumPrecisionError);
   });
 
   it("should not throw MaximumPrecisionError for adding big scales", () => {
-    const hugeDecimal1 = "0." + "0".repeat(50_000) + "1";
-    const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
+    const hugeDecimal1 = "0." + "0".repeat(10_000) + "1";
+    const hugeDecimal2 = "0." + "0".repeat(20_000) + "1";
     expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
       MaximumPrecisionError,
     );
@@ -232,7 +232,7 @@ describe("evaluate - error handling", () => {
   });
 
   it("should throw MaximumPrecisionError for very large scale", () => {
-    const hugeDecimal = "0." + "0".repeat(500_000) + "1";
+    const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
   });
 });

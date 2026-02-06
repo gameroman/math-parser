@@ -70,7 +70,7 @@ function isUnaryOperation(op: StackOp) {
 /**
  * Maximum allowed precision
  */
-const MAX_PRECISION = 200_000;
+const MAX_PRECISION = 50_000;
 /**
  * Threshold to prevent denominators from growing infinitely.
  */
@@ -110,10 +110,22 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
           resN = isSub ? left.n - right.n : left.n + right.n;
           resD = left.d;
         } else {
-          resN = isSub
-            ? left.n * right.d - right.n * left.d
-            : left.n * right.d + right.n * left.d;
-          resD = left.d * right.d;
+          const commonFactor = gcd(left.d, right.d);
+
+          if (commonFactor === 1n) {
+            resN = isSub
+              ? left.n * right.d - right.n * left.d
+              : left.n * right.d + right.n * left.d;
+            resD = left.d * right.d;
+          } else {
+            const multiplierLeft = right.d / commonFactor;
+            const multiplierRight = left.d / commonFactor;
+
+            resN = isSub
+              ? left.n * multiplierLeft - right.n * multiplierRight
+              : left.n * multiplierLeft + right.n * multiplierRight;
+            resD = left.d * multiplierLeft;
+          }
         }
 
         if (resD === 1n) {
