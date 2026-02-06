@@ -1,4 +1,4 @@
-import type { TransformedToken } from "./transformer";
+import type { ParsedToken } from "./parser";
 
 import {
   UnexpectedEndOfExpressionError,
@@ -70,7 +70,7 @@ function isUnaryOperation(op: StackOp) {
  */
 const MAX_PRECISION = 200_000;
 
-export function evaluate(tokens: TransformedToken[]): HighPrecision {
+export function evaluate(tokens: ParsedToken[]): HighPrecision {
   if (tokens.length === 0) {
     throw new EmptyExpressionError();
   }

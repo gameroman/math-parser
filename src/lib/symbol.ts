@@ -1,5 +1,5 @@
 import type { TokenNumber } from "./lexer";
-import type { TransformedToken } from "./transformer";
+import type { ParsedToken } from "./parser";
 
 const symbolMap = {
   PLUS: "+",
@@ -15,5 +15,5 @@ const symbolMap = {
 export const prettifyNumber = (t: TokenNumber) =>
   t.fraction ? `${t.whole}.${t.fraction}` : t.whole;
 
-export const getSym = (t: TransformedToken): string =>
+export const getSym = (t: ParsedToken): string =>
   t.type === "NUMBER" ? prettifyNumber(t) : symbolMap[t.type];

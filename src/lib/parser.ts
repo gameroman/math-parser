@@ -7,7 +7,7 @@ export type UnaryToken =
   | { type: "UNARY_PLUS"; pos: number }
   | { type: "UNARY_MINUS"; pos: number };
 
-export type TransformedToken = Token | UnaryToken;
+export type ParsedToken = Token | UnaryToken;
 
 function isThisUnaryToken(prev?: Token) {
   return (
@@ -17,10 +17,10 @@ function isThisUnaryToken(prev?: Token) {
   );
 }
 
-export function applyUnaryTransformation(tokens: Token[]): TransformedToken[] {
+export function parse(tokens: Token[]): ParsedToken[] {
   if (tokens.length === 0) return [];
 
-  const result: TransformedToken[] = tokens.map((token, i) => {
+  const result: ParsedToken[] = tokens.map((token, i) => {
     const prev = tokens[i - 1];
 
     // --- 1. Syntax Validation ---

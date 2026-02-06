@@ -38,7 +38,10 @@ export interface LexerOptions {
 /**
  * Simple lexer (tokenizer).
  */
-export function parse(expression: string, options: LexerOptions = {}): Token[] {
+export function tokenize(
+  expression: string,
+  options: LexerOptions = {},
+): Token[] {
   const { decimalSeparator = "." } = options;
   const tokens: Token[] = [];
   let index = 0;

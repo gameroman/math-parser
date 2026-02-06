@@ -120,8 +120,7 @@ describe("evaluate", () => {
     const getTest = (n: number) => {
       const expression = "(".repeat(n) + "0" + ")".repeat(n);
       it(`should handle ${n} parentheses`, () => {
-        expect(() => calculate(expression)).not.toThrow(RangeError);
-        expect(() => calculate(expression)).not.toThrow(Error);
+        expect(() => calculate(expression)).not.toThrow();
         expect(calculate(expression)).toBe("0");
       });
     };
@@ -233,7 +232,7 @@ describe("evaluate - error handling", () => {
   });
 
   it("should throw MaximumPrecisionError for very large scale", () => {
-    const hugeDecimal2 = "0." + "0".repeat(500_000) + "1";
-    expect(() => calculate(hugeDecimal2)).toThrow(MaximumPrecisionError);
+    const hugeDecimal = "0." + "0".repeat(500_000) + "1";
+    expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
   });
 });

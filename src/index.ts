@@ -1,6 +1,6 @@
 import { evaluate, type HighPrecision } from "./lib/interpreter";
-import { parse } from "./lib/lexer";
-import { applyUnaryTransformation } from "./lib/transformer";
+import { tokenize } from "./lib/lexer";
+import { parse } from "./lib/parser";
 
 // Use a Discriminated Union for type-safe options
 export type FormatOptions =
@@ -79,8 +79,8 @@ export function calculate(
   expression: string,
   options: FormatOptions = {},
 ): string {
-  const tokens = parse(expression);
-  const transformed = applyUnaryTransformation(tokens);
+  const tokens = tokenize(expression);
+  const transformed = parse(tokens);
   const result = evaluate(transformed);
   return formatResult(result, options);
 }
