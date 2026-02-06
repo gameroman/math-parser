@@ -5,6 +5,7 @@ import {
   MismatchedParenthesisError,
   InsufficientOperandsError,
   EmptyExpressionError,
+  MaximumPrecisionError,
 } from "./errors";
 
 const precedence = {
@@ -27,6 +28,8 @@ function isUnaryOperation(op: StackOp) {
   return op === "UNARY_PLUS" || op === "UNARY_MINUS";
 }
 
+const MAX_PRECISION = 200_000;
+
 /**
  * Normalizes two high-precision numbers to the same scale.
  */
@@ -35,6 +38,9 @@ function alignScales(
   b: HighPrecision,
 ): [bigint, bigint, number] {
   const maxScale = Math.max(a.scale, b.scale);
+  if (maxScale > MAX_PRECISION) {
+    throw new MaximumPrecisionError(maxScale, MAX_PRECISION);
+  }
   const aVal = a.value * 10n ** BigInt(maxScale - a.scale);
   const bVal = b.value * 10n ** BigInt(maxScale - b.scale);
   return [aVal, bVal, maxScale];

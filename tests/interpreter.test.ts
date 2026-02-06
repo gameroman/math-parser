@@ -5,6 +5,7 @@ import {
   EmptyExpressionError,
   IncompleteExpressionError,
   MathSyntaxError,
+  MaximumPrecisionError,
   MismatchedParenthesisError,
   UnexpectedEndOfExpressionError,
 } from "../src/lib/errors";
@@ -137,6 +138,12 @@ describe("evaluate", () => {
     expect(calculate("(1+2)(3+4)")).toBe("21");
   });
 
+  it("should correctly handle order of implicit multiplication", () => {
+    expect(calculate("2 + 2(1 + 1)")).toBe("6");
+    expect(calculate("2 * 2(1 + 2)")).toBe("12");
+    expect(calculate("8 - 2(1 + 2)")).toBe("2");
+  });
+
   it("should correctly handle a decimal", () => {
     expect(calculate("0.1")).toBe("0.1");
     expect(calculate("0.01")).toBe("0.01");
@@ -161,6 +168,21 @@ describe("evaluate", () => {
   it("should correctly multiply a whole number with a decimal", () => {
     expect(calculate("2 * 0.5")).toBe("1");
     expect(calculate("0.3 * 7")).toBe("2.1");
+  });
+
+  it("should not throw MaximumPrecisionError for big scale", () => {
+    const hugeDecimal1 = "0." + "0".repeat(50_000) + "1";
+    expect(() => calculate(hugeDecimal1)).not.toThrow(MaximumPrecisionError);
+    const hugeDecimal2 = "0." + "0".repeat(500_000) + "1";
+    expect(() => calculate(hugeDecimal2)).not.toThrow(MaximumPrecisionError);
+  });
+
+  it("should not throw MaximumPrecisionError for adding big scales", () => {
+    const hugeDecimal1 = "0." + "0".repeat(50_000) + "1";
+    const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
+    expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
+      MaximumPrecisionError,
+    );
   });
 });
 
@@ -210,5 +232,13 @@ describe("evaluate - error handling", () => {
 
   it("should throw UnexpectedEndOfExpressionError for operation-only expression", () => {
     expect(() => calculate("-")).toThrow(UnexpectedEndOfExpressionError);
+  });
+
+  it("should throw MaximumPrecisionError for adding very large scale", () => {
+    const hugeDecimal1 = "0." + "0".repeat(50_000) + "1";
+    const hugeDecimal2 = "0." + "0".repeat(500_000) + "1";
+    expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).toThrow(
+      MaximumPrecisionError,
+    );
   });
 });

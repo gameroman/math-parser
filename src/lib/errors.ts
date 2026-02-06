@@ -18,6 +18,14 @@ export class InterpreterError extends Error {
   }
 }
 
+export class MaximumPrecisionError extends InterpreterError {
+  constructor(precision: number, maxPrecision: number) {
+    super(
+      `Exceeded maximum precision of ${maxPrecision} digits (${precision}).`,
+    );
+  }
+}
+
 export class EmptyExpressionError extends InterpreterError {
   constructor() {
     super("Empty expression");
