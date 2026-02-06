@@ -27,7 +27,6 @@ export type HighPrecision = {
 
 /**
  * Fast Binary GCD (Stein's Algorithm) for BigInt.
- * Shifting is generally faster than the modulo operator for large integers.
  */
 function gcd(a: bigint, b: bigint): bigint {
   if (a === b) return a;
@@ -72,6 +71,10 @@ function isUnaryOperation(op: StackOp) {
  * Maximum allowed precision
  */
 const MAX_PRECISION = 200_000;
+/**
+ * Threshold to prevent denominators from growing infinitely.
+ */
+const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
 export function evaluate(tokens: ParsedToken[]): HighPrecision {
   if (tokens.length === 0) {
@@ -100,28 +103,29 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       case "ADD":
       case "SUBTRACT": {
         const isSub = op === "SUBTRACT";
-        // OPTIMIZATION: If denominators are the same, skip complex math
+        let resN: bigint;
+        let resD: bigint;
+
         if (left.d === right.d) {
-          const nextN = isSub ? left.n - right.n : left.n + right.n;
-          // Only simplify if denominators are not 1 to avoid unnecessary GCDs
-          values.push(
-            left.d === 1n ? { n: nextN, d: 1n } : simplify(nextN, left.d),
-          );
+          resN = isSub ? left.n - right.n : left.n + right.n;
+          resD = left.d;
         } else {
-          // Standard: a/b + c/d = (ad + bc) / bd
-          values.push(
-            simplify(
-              isSub
-                ? left.n * right.d - right.n * left.d
-                : left.n * right.d + right.n * left.d,
-              left.d * right.d,
-            ),
-          );
+          resN = isSub
+            ? left.n * right.d - right.n * left.d
+            : left.n * right.d + right.n * left.d;
+          resD = left.d * right.d;
+        }
+
+        if (resD === 1n) {
+          values.push({ n: resN, d: 1n });
+        } else if (resD > SIMPLIFY_THRESHOLD) {
+          values.push(simplify(resN, resD));
+        } else {
+          values.push({ n: resN, d: resD });
         }
         break;
       }
       case "MULTIPLY": {
-        // Optimization: If both are integers, no simplify needed
         if (left.d === 1n && right.d === 1n) {
           values.push({ n: left.n * right.n, d: 1n });
         } else {
@@ -163,7 +167,6 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     const token = tokens[i]!;
     const prevToken = tokens[i - 1];
 
-    // Implicit Multiplication
     if (
       prevToken &&
       ((token.type === "LPAREN" &&
@@ -181,8 +184,14 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         if (fl > MAX_PRECISION) {
           throw new MaximumPrecisionError(fl, MAX_PRECISION);
         }
-        const d = 10n ** BigInt(fl);
-        values.push(simplify(n, d));
+        // If it's an integer, don't bother with simplify()
+        if (fl === 0) {
+          values.push({ n, d: 1n });
+        } else {
+          // We simplify numbers on input to keep the starting denominators small
+          const d = 10n ** BigInt(fl);
+          values.push(simplify(n, d));
+        }
         break;
       }
       case "LPAREN": {
@@ -240,5 +249,6 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const result = values[0];
   if (!result) throw new UnexpectedEndOfExpressionError();
-  return result;
+
+  return simplify(result.n, result.d);
 }
