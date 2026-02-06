@@ -254,7 +254,9 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     const top = ops[ops.length - 1];
     const lastPos = tokens[tokens.length - 1]?.pos ?? 0;
     if (top === "LPAREN") {
-      throw new MismatchedParenthesisError(lastPos, "Missing closing ')'");
+      // Automatically close missing parentheses instead of throwing an error
+      ops.pop();
+      continue;
     }
     applyOp(lastPos);
   }

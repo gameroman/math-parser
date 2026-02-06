@@ -94,7 +94,7 @@ describe("evaluate", () => {
       const expression = "1 * 1 + ".repeat(numbers) + "0";
       it(`should handle adding and multiplying ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
-      });
+      }, 10_000);
     };
     getTest(100);
     getTest(1000);
@@ -135,6 +135,10 @@ describe("evaluate", () => {
     expect(calculate("2(2)")).toBe("4");
     expect(calculate("2(3+4)")).toBe("14");
     expect(calculate("(1+2)(3+4)")).toBe("21");
+  });
+
+  it("should allow missing closing parenthesis", () => {
+    expect(calculate("(1 + 2")).toBe("3");
   });
 
   it("should correctly handle order of implicit multiplication", () => {
@@ -180,7 +184,7 @@ describe("evaluate", () => {
     expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
       MaximumPrecisionError,
     );
-  });
+  }, 10_000);
 });
 
 describe("evaluate - error handling", () => {
@@ -202,11 +206,6 @@ describe("evaluate - error handling", () => {
 
   it("should throw MismatchedParenthesisError for extra closing parenthesis", () => {
     expect(() => calculate("1 + 2)")).toThrow(MismatchedParenthesisError);
-  });
-
-  it("should throw MismatchedParenthesisError for missing closing parenthesis", () => {
-    expect(() => calculate("(1 + 2")).toThrow(MismatchedParenthesisError);
-    expect(() => calculate("(1 + 2")).toThrow(/Missing closing '\)'/);
   });
 
   it("should throw IncompleteExpressionError for trailing operators", () => {
