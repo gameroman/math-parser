@@ -16,6 +16,7 @@ export type Token =
   | { type: "MINUS"; pos: number }
   | { type: "MUL"; pos: number }
   | { type: "DIV"; pos: number }
+  | { type: "POW"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number };
 
@@ -154,6 +155,12 @@ export function tokenize(
 
     if (ch === "/") {
       tokens.push({ type: "DIV", pos: startPos });
+      index++;
+      continue;
+    }
+
+    if (ch === "^") {
+      tokens.push({ type: "POW", pos: startPos });
       index++;
       continue;
     }
