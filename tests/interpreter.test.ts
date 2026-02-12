@@ -3,8 +3,6 @@ import { describe, it, expect } from "bun:test";
 import { calculate } from "../src";
 import {
   EmptyExpressionError,
-  IncompleteExpressionError,
-  MathSyntaxError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
   UnexpectedEndOfExpressionError,
@@ -196,6 +194,11 @@ describe("evaluate", () => {
       MaximumPrecisionError,
     );
   }, 10_000);
+
+  it("should handle a simple exponentiation", () => {
+    expect(calculate("2^5")).toBe("32");
+    expect(calculate("3^3")).toBe("27");
+  });
 });
 
 describe("evaluate - error handling", () => {
