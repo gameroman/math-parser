@@ -12,5 +12,7 @@ describe("parse", () => {
     expect(() => tokenize("1..2")).toThrow(LexerError);
     expect(() => tokenize("1.2.")).toThrow(LexerError);
     expect(() => tokenize(".1.2")).toThrow(LexerError);
+    expect(() => tokenize("1.2.3")).toThrow(LexerError);
+    expect(() => tokenize("1.2.3.4")).toThrow(LexerError);
   });
 });
