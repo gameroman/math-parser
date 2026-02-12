@@ -4,6 +4,7 @@ import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
   InsufficientOperandsError,
+  InterpreterError,
   EmptyExpressionError,
   MaximumPrecisionError,
 } from "./errors";
@@ -13,6 +14,7 @@ const precedence = {
   SUBTRACT: 1,
   MULTIPLY: 2,
   DIVIDE: 2,
+  POWER: 4,
   UNARY_PLUS: 3,
   UNARY_MINUS: 3,
   LPAREN: 0,
@@ -147,6 +149,27 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         const g2 = gcd(rD, lD);
         resN = (lN / g1) * (rD / g2);
         resD = (lD / g2) * (rN / g1);
+        break;
+      }
+      case "POWER": {
+        if (rD !== 1n) {
+          throw new InterpreterError(
+            "Fractional exponents are not supported yet",
+          );
+        }
+
+        // Handling negative exponents: flip the fraction and make exponent positive
+        let exponent = rN;
+        let baseN = lN;
+        let baseD = lD;
+
+        if (exponent < 0n) {
+          [baseN, baseD] = [baseD, baseN];
+          exponent = -exponent;
+        }
+
+        resN = baseN ** exponent;
+        resD = baseD ** exponent;
         break;
       }
     }
