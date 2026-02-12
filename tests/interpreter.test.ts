@@ -245,4 +245,8 @@ describe("evaluate - error handling", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
   });
+
+  it("should throw MathSyntaxError for two space separated numbers", () => {
+    expect(() => calculate("1 2")).toThrow(MathSyntaxError);
+  });
 });
