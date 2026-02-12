@@ -74,11 +74,11 @@ export function tokenize(
 
         // Check for decimal separator within fractional part (e.g., "1.2." or ".1.2")
         if (index < length && expression[index] === decimalSeparator) {
-          throw new LexerError(`Invalid decimal number format`, index);
+          throw new LexerError("Invalid decimal number format", index);
         }
 
         if (index === fracStart) {
-          throw new LexerError(`Expected digit after decimal separator`, index);
+          throw new LexerError("Expected digit after decimal separator", index);
         }
         fraction = fracBuffer;
       } else {
@@ -95,7 +95,7 @@ export function tokenize(
             index + 1 < length &&
             expression[index + 1] === decimalSeparator
           ) {
-            throw new LexerError(`Invalid decimal number format`, index);
+            throw new LexerError("Invalid decimal number format", index);
           }
           index++; // Skip the separator
 
@@ -112,6 +112,10 @@ export function tokenize(
             fraction = fracBuffer;
           }
         }
+      }
+
+      if (index < length && expression[index] === decimalSeparator) {
+        throw new LexerError("Invalid decimal number format", index);
       }
 
       tokens.push({ type: "NUMBER", whole, fraction, pos: startPos });
