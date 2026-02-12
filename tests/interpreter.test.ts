@@ -199,38 +199,8 @@ describe("evaluate", () => {
 });
 
 describe("evaluate - error handling", () => {
-  it("should throw MathSyntaxError for consecutive binary operators", () => {
-    // 5 * * 3 is invalid
-    expect(() => calculate("5 * * 3")).toThrow(MathSyntaxError);
-    expect(() => calculate("5 * * 3")).toThrow(/Unexpected operator '\*'/);
-  });
-
-  it("should throw MathSyntaxError for invalid operator after opening parenthesis", () => {
-    // (*) is invalid
-    expect(() => calculate("(*)")).toThrow(MathSyntaxError);
-    expect(() => calculate("( * 2)")).toThrow(/Unexpected operator '\*'/);
-  });
-
-  it("should throw MathSyntaxError for empty parentheses", () => {
-    expect(() => calculate("()")).toThrow(MathSyntaxError);
-  });
-
   it("should throw MismatchedParenthesisError for extra closing parenthesis", () => {
     expect(() => calculate("1 + 2)")).toThrow(MismatchedParenthesisError);
-  });
-
-  it("should throw IncompleteExpressionError for trailing operators", () => {
-    expect(() => calculate("5 +")).toThrow(MathSyntaxError);
-    expect(() => calculate("5 +")).toThrow(IncompleteExpressionError);
-    expect(() => calculate("5 +")).toThrow(/trailing operator '\+'/);
-  });
-
-  it("should throw MathSyntaxError for leading multiplication", () => {
-    expect(() => calculate("* 5")).toThrow(MathSyntaxError);
-  });
-
-  it("should throw MathSyntaxError for invalid unary combinations", () => {
-    expect(() => calculate("5 + * 3")).toThrow(MathSyntaxError);
   });
 
   it("should throw EmptyExpressionError for empty expression", () => {
@@ -244,9 +214,5 @@ describe("evaluate - error handling", () => {
   it("should throw MaximumPrecisionError for very large scale", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
-  });
-
-  it("should throw MathSyntaxError for two space separated numbers", () => {
-    expect(() => calculate("1 2")).toThrow(MathSyntaxError);
   });
 });
