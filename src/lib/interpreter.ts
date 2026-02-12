@@ -262,6 +262,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         pushOpWithPrecedence("DIVIDE", token.pos);
         break;
       }
+      case "POW": {
+        pushOpWithPrecedence("POWER", token.pos);
+        break;
+      }
       case "UNARY_PLUS": {
         pushOpWithPrecedence("UNARY_PLUS", token.pos);
         break;
