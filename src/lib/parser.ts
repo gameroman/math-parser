@@ -10,6 +10,7 @@ export type UnaryToken =
 export type ParsedToken = Token | UnaryToken;
 
 function isThisUnaryToken(prev?: Token) {
+  // A '+' or '-' is unary if it's at the start or follows an operator/paren
   return (
     !prev ||
     prev.type === "LPAREN" ||
@@ -35,6 +36,15 @@ export function parse(tokens: Token[]): ParsedToken[] {
       }
     }
 
+    if (prev) {
+      if (token.type === "NUMBER" && prev.type === "NUMBER") {
+        throw new MathSyntaxError(
+          "Missing operator between numbers",
+          token.pos,
+        );
+      }
+    }
+
     // You can't have '()' with nothing inside
     if (token.type === "RPAREN" && prev?.type === "LPAREN") {
       throw new MathSyntaxError("Unexpected ')' after '('", token.pos);
@@ -46,10 +56,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
       return token;
     }
 
-    // A '+' or '-' is unary if it's at the start or follows an operator/paren
-    const isUnary = isThisUnaryToken(prev);
-
-    if (isUnary) {
+    if (isThisUnaryToken(prev)) {
       return {
         type: token.type === "PLUS" ? "UNARY_PLUS" : "UNARY_MINUS",
         pos: token.pos,
