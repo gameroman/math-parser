@@ -7,7 +7,9 @@ export type UnaryToken =
   | { type: "UNARY_PLUS"; pos: number }
   | { type: "UNARY_MINUS"; pos: number };
 
-export type ParsedToken = Token | UnaryToken;
+export type ImplicitMulToken = { type: "IMPLICIT_MUL"; pos: number };
+
+export type ParsedToken = Token | UnaryToken | ImplicitMulToken;
 
 function isThisUnaryToken(prev?: Token) {
   // A '+' or '-' is unary if it's at the start or follows an operator/paren
@@ -21,12 +23,25 @@ function isThisUnaryToken(prev?: Token) {
 export function parse(tokens: Token[]): ParsedToken[] {
   if (tokens.length === 0) return [];
 
-  const result: ParsedToken[] = tokens.map((token, i) => {
+  const result: ParsedToken[] = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]!;
     const prev = tokens[i - 1];
 
-    // --- 1. Syntax Validation ---
+    // --- Implicit Multiplication ---
+    if (prev) {
+      const isImplicit =
+        (prev.type === "NUMBER" && token.type === "LPAREN") ||
+        (prev.type === "RPAREN" && token.type === "LPAREN") ||
+        (prev.type === "RPAREN" && token.type === "NUMBER");
 
-    // '*' or '/' cannot be at the start, after '(', or after another operator
+      if (isImplicit) {
+        result.push({ type: "IMPLICIT_MUL", pos: token.pos });
+      }
+    }
+
+    // --- Syntax Validation ---
     if (token.type === "MUL" || token.type === "DIV" || token.type === "POW") {
       if (isThisUnaryToken(prev)) {
         throw new MathSyntaxError(
@@ -36,13 +51,8 @@ export function parse(tokens: Token[]): ParsedToken[] {
       }
     }
 
-    if (prev) {
-      if (token.type === "NUMBER" && prev.type === "NUMBER") {
-        throw new MathSyntaxError(
-          "Missing operator between numbers",
-          token.pos,
-        );
-      }
+    if (prev && token.type === "NUMBER" && prev.type === "NUMBER") {
+      throw new MathSyntaxError("Missing operator between numbers", token.pos);
     }
 
     // You can't have '()' with nothing inside
@@ -50,24 +60,21 @@ export function parse(tokens: Token[]): ParsedToken[] {
       throw new MathSyntaxError("Unexpected ')' after '('", token.pos);
     }
 
-    // --- 2. Unary Identification ---
-
-    if (token.type !== "PLUS" && token.type !== "MINUS") {
-      return token;
-    }
-
-    if (isThisUnaryToken(prev)) {
-      return {
+    // --- Unary Identification ---
+    if (
+      (token.type === "PLUS" || token.type === "MINUS") &&
+      isThisUnaryToken(prev)
+    ) {
+      result.push({
         type: token.type === "PLUS" ? "UNARY_PLUS" : "UNARY_MINUS",
         pos: token.pos,
-      };
+      });
+    } else {
+      result.push(token);
     }
+  }
 
-    return token;
-  });
-
-  // --- 3. Trailing Operator Validation ---
-
+  // --- Trailing Operator Validation ---
   const last = result[result.length - 1];
   if (last && ["PLUS", "MINUS", "MUL", "DIV", "POW"].includes(last.type)) {
     throw new IncompleteExpressionError(
