@@ -154,14 +154,16 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         break;
       }
       case "POWER": {
-        if (rD !== 1n) {
+        const normalizedExp = simplify(rN, rD);
+
+        if (normalizedExp.d !== 1n) {
           throw new InterpreterError(
-            `Fractional exponents ${rN}/${rD} are not supported yet`,
+            `Fractional exponents ${normalizedExp.n}/${normalizedExp.d} are not supported yet`,
           );
         }
 
         // Handling negative exponents: flip the fraction and make exponent positive
-        let exponent = rN;
+        let exponent = normalizedExp.n;
         let baseN = lN;
         let baseD = lD;
 
