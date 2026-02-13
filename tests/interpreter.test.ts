@@ -3,8 +3,6 @@ import { describe, it, expect } from "bun:test";
 import { calculate } from "../src";
 import {
   EmptyExpressionError,
-  IncompleteExpressionError,
-  MathSyntaxError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
   UnexpectedEndOfExpressionError,
@@ -196,6 +194,26 @@ describe("evaluate", () => {
       MaximumPrecisionError,
     );
   }, 10_000);
+
+  it("should handle a simple exponentiation", () => {
+    expect(calculate("2^5")).toBe("32");
+    expect(calculate("3^3")).toBe("27");
+  });
+
+  it("should follow right-associativity for exponentiation", () => {
+    expect(calculate("2^3^2")).toBe("512");
+    expect(calculate("2^2^3")).toBe("256");
+  });
+
+  it("should have higher precedence for exponentiation", () => {
+    expect(calculate("-2^2")).toBe("-4");
+    expect(calculate("-2^2^3")).toBe("-256");
+  });
+
+  it("should handle negative exponentiation", () => {
+    expect(calculate("2^-1")).toBe("0.5");
+    expect(calculate("2^-2")).toBe("0.25");
+  });
 });
 
 describe("evaluate - error handling", () => {

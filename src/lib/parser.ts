@@ -14,7 +14,7 @@ function isThisUnaryToken(prev?: Token) {
   return (
     !prev ||
     prev.type === "LPAREN" ||
-    ["PLUS", "MINUS", "MUL", "DIV"].includes(prev.type)
+    ["PLUS", "MINUS", "MUL", "DIV", "POW"].includes(prev.type)
   );
 }
 
@@ -27,7 +27,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     // --- 1. Syntax Validation ---
 
     // '*' or '/' cannot be at the start, after '(', or after another operator
-    if (token.type === "MUL" || token.type === "DIV") {
+    if (token.type === "MUL" || token.type === "DIV" || token.type === "POW") {
       if (isThisUnaryToken(prev)) {
         throw new MathSyntaxError(
           `Unexpected operator '${getSym(token)}'`,
@@ -69,7 +69,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
   // --- 3. Trailing Operator Validation ---
 
   const last = result[result.length - 1];
-  if (last && ["PLUS", "MINUS", "MUL", "DIV"].includes(last.type)) {
+  if (last && ["PLUS", "MINUS", "MUL", "DIV", "POW"].includes(last.type)) {
     throw new IncompleteExpressionError(
       `trailing operator '${getSym(last)}'`,
       last.pos,

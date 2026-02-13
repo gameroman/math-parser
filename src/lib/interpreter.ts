@@ -4,6 +4,7 @@ import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
   InsufficientOperandsError,
+  InterpreterError,
   EmptyExpressionError,
   MaximumPrecisionError,
 } from "./errors";
@@ -13,6 +14,7 @@ const precedence = {
   SUBTRACT: 1,
   MULTIPLY: 2,
   DIVIDE: 2,
+  POWER: 4,
   UNARY_PLUS: 3,
   UNARY_MINUS: 3,
   LPAREN: 0,
@@ -149,6 +151,27 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         resD = (lD / g2) * (rN / g1);
         break;
       }
+      case "POWER": {
+        if (rD !== 1n) {
+          throw new InterpreterError(
+            "Fractional exponents are not supported yet",
+          );
+        }
+
+        // Handling negative exponents: flip the fraction and make exponent positive
+        let exponent = rN;
+        let baseN = lN;
+        let baseD = lD;
+
+        if (exponent < 0n) {
+          [baseN, baseD] = [baseD, baseN];
+          exponent = -exponent;
+        }
+
+        resN = baseN ** exponent;
+        resD = baseD ** exponent;
+        break;
+      }
     }
 
     if (resD > SIMPLIFY_THRESHOLD) {
@@ -163,9 +186,12 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
     const isUnary = isUnaryOperation(currentOp);
+    const isRightAssociative = currentOp === "POWER";
+
     while (
       ops.length > 0 &&
-      (isUnary
+      !isUnary &&
+      (isRightAssociative
         ? precedence[ops[ops.length - 1]!] > precedence[currentOp]
         : precedence[ops[ops.length - 1]!] >= precedence[currentOp])
     ) {
@@ -239,6 +265,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         pushOpWithPrecedence("DIVIDE", token.pos);
         break;
       }
+      case "POW": {
+        pushOpWithPrecedence("POWER", token.pos);
+        break;
+      }
       case "UNARY_PLUS": {
         pushOpWithPrecedence("UNARY_PLUS", token.pos);
         break;
@@ -263,8 +293,9 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const finalN = stackN.pop();
   const finalD = stackD.pop();
-  if (finalN === undefined || finalD === undefined)
+  if (finalN === undefined || finalD === undefined) {
     throw new UnexpectedEndOfExpressionError();
+  }
 
   return simplify(finalN, finalD);
 }
