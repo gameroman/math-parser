@@ -10,6 +10,8 @@ const symbolMap = {
   DIV: "/",
   LPAREN: "(",
   RPAREN: ")",
+  POW: "^",
+  IMPLICIT_MUL: "",
 } satisfies Record<string, string>;
 
 export const prettifyNumber = (t: TokenNumber) =>

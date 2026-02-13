@@ -38,6 +38,10 @@ export function serialize(tokens: Token[]): string {
         segment = ")";
         break;
       }
+      case "POW": {
+        segment = "^";
+        break;
+      }
     }
 
     if (i === 0) return segment;
