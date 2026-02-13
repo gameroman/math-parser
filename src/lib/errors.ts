@@ -18,7 +18,7 @@ export class InterpreterError extends Error {
     super(
       pos !== undefined
         ? `InterpreterError: ${message} at position ${pos}`
-        : message,
+        : `InterpreterError: ${message}`,
     );
     this.name = this.constructor.name;
   }
@@ -64,7 +64,7 @@ export class ParserError extends Error {
     super(
       pos !== undefined
         ? `ParserError: ${message} at position ${pos}`
-        : message,
+        : `ParserError: ${message}`,
     );
     this.name = this.constructor.name;
   }
