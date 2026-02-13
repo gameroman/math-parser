@@ -156,7 +156,7 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       case "POWER": {
         if (rD !== 1n) {
           throw new InterpreterError(
-            "Fractional exponents are not supported yet",
+            `Fractional exponents ${rD}/${lD} are not supported yet`,
           );
         }
 
