@@ -219,6 +219,19 @@ describe("evaluate", () => {
   it("should handle negative exponentiation", () => {
     expect(calculate("2^-1")).toBe("0.5");
     expect(calculate("2^-2")).toBe("0.25");
+    expect(calculate("-1^-1^-1")).toBe("-1");
+  });
+
+  it("should handle exponentiation with parantheses", () => {
+    expect(calculate("(1)^1")).toBe("1");
+    expect(calculate("1^(1)")).toBe("1");
+    expect(calculate("(1)^(1)")).toBe("1");
+    expect(calculate("(-1)^1")).toBe("-1");
+    expect(calculate("1^(-1)")).toBe("1");
+    expect(calculate("(-1)^(-1)")).toBe("-1");
+    expect(calculate("(-1)^(-1)^(-1)")).toBe("-1");
+    expect(calculate("(-1)^-1^(-1)")).toBe("-1");
+    expect(calculate("(-1)^(-1)^-1")).toBe("-1");
   });
 });
 
