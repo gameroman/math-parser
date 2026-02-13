@@ -10,14 +10,15 @@ import {
 } from "./errors";
 
 const precedence = {
+  LPAREN: 0,
   ADD: 1,
   SUBTRACT: 1,
   MULTIPLY: 2,
   DIVIDE: 2,
-  POWER: 4,
   UNARY_PLUS: 3,
   UNARY_MINUS: 3,
-  LPAREN: 0,
+  POWER: 4,
+  IMPLICIT_MUL: 5,
 } as const;
 
 type StackOp = keyof typeof precedence;
@@ -58,7 +59,7 @@ function gcd(a: bigint, b: bigint): bigint {
  * Reduces a fraction to its simplest form.
  */
 function simplify(n: bigint, d: bigint): HighPrecision {
-  if (d === 0n) throw new Error("Division by zero");
+  if (d === 0n) throw new InterpreterError("Division by zero");
   if (n === 0n) return { n: 0n, d: 1n };
   const common = gcd(n, d);
   const sign = d < 0n ? -1n : 1n;
@@ -132,7 +133,8 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         }
         break;
       }
-      case "MULTIPLY": {
+      case "MULTIPLY":
+      case "IMPLICIT_MUL": {
         if (lD === 1n && rD === 1n) {
           resN = lN * rN;
           resD = 1n;
@@ -202,16 +204,6 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]!;
-    const prevToken = tokens[i - 1];
-
-    if (
-      prevToken &&
-      ((token.type === "LPAREN" &&
-        (prevToken.type === "NUMBER" || prevToken.type === "RPAREN")) ||
-        (token.type === "NUMBER" && prevToken.type === "RPAREN"))
-    ) {
-      pushOpWithPrecedence("MULTIPLY", token.pos);
-    }
 
     switch (token.type) {
       case "NUMBER": {
@@ -275,6 +267,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       }
       case "UNARY_MINUS": {
         pushOpWithPrecedence("UNARY_MINUS", token.pos);
+        break;
+      }
+      case "IMPLICIT_MUL": {
+        pushOpWithPrecedence("IMPLICIT_MUL", token.pos);
         break;
       }
     }
