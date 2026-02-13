@@ -210,16 +210,26 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     switch (token.type) {
       case "NUMBER": {
         const frac = token.fraction || "";
-        const n = BigInt(token.whole + frac);
         const fl = frac.length;
         if (fl > MAX_PRECISION) {
           throw new MaximumPrecisionError(fl, MAX_PRECISION);
         }
-        if (fl === 0) {
+
+        let n = BigInt(token.whole + frac);
+        let d = fl === 0 ? 1n : 10n ** BigInt(fl);
+
+        if (token.exponent) {
+          const expValue = BigInt(token.exponent);
+          if (expValue >= 0n) {
+            n *= 10n ** expValue;
+          } else {
+            d *= 10n ** -expValue;
+          }
+        }
+        if (d === 1n) {
           stackN.push(n);
           stackD.push(1n);
         } else {
-          const d = 10n ** BigInt(fl);
           const reduced = simplify(n, d);
           stackN.push(reduced.n);
           stackD.push(reduced.d);

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 
-import { IncompleteExpressionError, MathSyntaxError } from "../src/lib/errors";
 import { calculate } from "../src";
+import { IncompleteExpressionError, MathSyntaxError } from "../src/lib/errors";
 
 describe("parse", () => {
   it("should throw MathSyntaxError for consecutive binary operators", () => {

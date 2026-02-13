@@ -8,6 +8,7 @@ export interface TokenNumber extends TokenBase {
   type: "NUMBER";
   whole: string;
   fraction?: string;
+  exponent?: string;
 }
 
 export type Token =
@@ -28,7 +29,6 @@ function isWhitespace(ch?: string): ch is " " {
 
 function isDigit(ch?: string): ch is Digit {
   if (ch === undefined) return false;
-  if (ch.length !== 1) return false;
   return ch >= "0" && ch <= "9";
 }
 
@@ -60,66 +60,73 @@ export function tokenize(
     if (isDigit(ch) || ch === decimalSeparator) {
       let whole = "";
       let fraction: string | undefined = undefined;
+      let exponent: string | undefined = undefined;
 
-      // Handle implicit whole part (e.g., ".1")
       if (ch === decimalSeparator) {
         whole = "0";
-        index++; // Skip the separator
-
+        index++;
         const fracStart = index;
         let fracBuffer = "";
         while (index < length && isDigit(expression[index])) {
           fracBuffer += expression[index];
           index++;
         }
-
-        // Check for decimal separator within fractional part (e.g., "1.2." or ".1.2")
-        if (index < length && expression[index] === decimalSeparator) {
-          throw new LexerError("Invalid decimal number format", index);
-        }
-
         if (index === fracStart) {
           throw new LexerError("Expected digit after decimal separator", index);
         }
         fraction = fracBuffer;
       } else {
-        // Parse whole part
         while (index < length && isDigit(expression[index])) {
           whole += expression[index];
           index++;
         }
-
-        // Parse fractional part
         if (index < length && expression[index] === decimalSeparator) {
-          // Check for consecutive decimal separators (e.g., "1..2")
-          if (
-            index + 1 < length &&
-            expression[index + 1] === decimalSeparator
-          ) {
-            throw new LexerError("Invalid decimal number format", index);
-          }
-          index++; // Skip the separator
-
-          const fracStart = index;
+          index++;
           let fracBuffer = "";
+          const fracStart = index;
           while (index < length && isDigit(expression[index])) {
             fracBuffer += expression[index];
             index++;
           }
-
-          if (index === fracStart) {
-            fraction = "0";
-          } else {
-            fraction = fracBuffer;
-          }
+          fraction = index === fracStart ? "0" : fracBuffer;
         }
       }
 
+      if (
+        index < length &&
+        (expression[index] === "e" || expression[index] === "E")
+      ) {
+        let expBuffer = "";
+        const ePos = index;
+        index++; // Skip 'e'
+
+        // Optional sign for exponent
+        if (
+          index < length &&
+          (expression[index] === "+" || expression[index] === "-")
+        ) {
+          expBuffer += expression[index];
+          index++;
+        }
+
+        const expDigitsStart = index;
+        while (index < length && isDigit(expression[index])) {
+          expBuffer += expression[index];
+          index++;
+        }
+
+        if (index === expDigitsStart) {
+          throw new LexerError("Expected digits for exponent", ePos);
+        }
+        exponent = expBuffer;
+      }
+
+      // Final check for trailing separators
       if (index < length && expression[index] === decimalSeparator) {
         throw new LexerError("Invalid decimal number format", index);
       }
 
-      tokens.push({ type: "NUMBER", whole, fraction, pos: startPos });
+      tokens.push({ type: "NUMBER", whole, fraction, exponent, pos: startPos });
       continue;
     }
 
