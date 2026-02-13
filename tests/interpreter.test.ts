@@ -17,20 +17,6 @@ describe("evaluate", () => {
     expect(calculate("1 + 1")).toBe("2");
   });
 
-  describe("adding a lot of numbers", () => {
-    const getTest = (numbers: number) => {
-      const expression = "1 + ".repeat(numbers) + "0";
-      it(`should handle adding ${numbers} numbers`, () => {
-        expect(calculate(expression)).toBe(`${numbers}`);
-      }, 10_000);
-    };
-    getTest(100);
-    getTest(1000);
-    getTest(10_000);
-    getTest(100_000);
-    getTest(1000_000);
-  });
-
   it("should handle a simple positive number", () => {
     expect(calculate("+1")).toBe("1");
   });
@@ -73,34 +59,6 @@ describe("evaluate", () => {
     expect(calculate("-2 * -3")).toBe("6");
   });
 
-  describe("multiplying a lot of numbers", () => {
-    const getTest = (numbers: number) => {
-      const expression = "1 * ".repeat(numbers) + "1";
-      it(`should handle multiplying ${numbers} numbers`, () => {
-        expect(calculate(expression)).toBe("1");
-      });
-    };
-    getTest(100);
-    getTest(1000);
-    getTest(10_000);
-    getTest(100_000);
-    getTest(1000_000);
-  });
-
-  describe("adding and multiplying a lot of numbers", () => {
-    const getTest = (numbers: number) => {
-      const expression = "1 * 1 + ".repeat(numbers) + "0";
-      it(`should handle adding and multiplying ${numbers} numbers`, () => {
-        expect(calculate(expression)).toBe(`${numbers}`);
-      }, 10_000);
-    };
-    getTest(100);
-    getTest(1000);
-    getTest(10_000);
-    getTest(100_000);
-    getTest(1000_000);
-  });
-
   it("should handle parentheses", () => {
     expect(calculate("(1 + 2) * 3")).toBe("9");
     expect(calculate("2 * (3 + 4)")).toBe("14");
@@ -112,21 +70,6 @@ describe("evaluate", () => {
 
   it("should handle unary operators with parentheses", () => {
     expect(calculate("-(1 + 1)")).toBe("-2");
-  });
-
-  describe("a lot of parentheses", () => {
-    const getTest = (n: number) => {
-      const expression = "(".repeat(n) + "0" + ")".repeat(n);
-      it(`should handle ${n} parentheses`, () => {
-        expect(() => calculate(expression)).not.toThrow();
-        expect(calculate(expression)).toBe("0");
-      });
-    };
-    getTest(100);
-    getTest(1000);
-    getTest(10_000);
-    getTest(100_000);
-    getTest(1000_000);
   });
 
   it("should handle implicit multiplication", () => {
@@ -193,14 +136,6 @@ describe("evaluate", () => {
     expect(() => calculate(bigDecimal)).not.toThrow(MaximumPrecisionError);
   });
 
-  it("should not throw MaximumPrecisionError for adding big scales", () => {
-    const hugeDecimal1 = "0." + "0".repeat(5_000) + "1";
-    const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
-    expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
-      MaximumPrecisionError,
-    );
-  }, 10_000);
-
   it("should handle a simple exponentiation", () => {
     expect(calculate("2^5")).toBe("32");
     expect(calculate("3^3")).toBe("27");
@@ -252,4 +187,71 @@ describe("evaluate - error handling", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
   });
+});
+
+describe("evaluate - large operations", () => {
+  describe("adding a lot of numbers", () => {
+    const getTest = (numbers: number) => {
+      const expression = "1 + ".repeat(numbers) + "0";
+      it(`should handle adding ${numbers} numbers`, () => {
+        expect(calculate(expression)).toBe(`${numbers}`);
+      }, 10_000);
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
+
+  describe("multiplying a lot of numbers", () => {
+    const getTest = (numbers: number) => {
+      const expression = "1 * ".repeat(numbers) + "1";
+      it(`should handle multiplying ${numbers} numbers`, () => {
+        expect(calculate(expression)).toBe("1");
+      });
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
+
+  describe("adding and multiplying a lot of numbers", () => {
+    const getTest = (numbers: number) => {
+      const expression = "1 * 1 + ".repeat(numbers) + "0";
+      it(`should handle adding and multiplying ${numbers} numbers`, () => {
+        expect(calculate(expression)).toBe(`${numbers}`);
+      }, 10_000);
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
+
+  describe("a lot of parentheses", () => {
+    const getTest = (n: number) => {
+      const expression = "(".repeat(n) + "0" + ")".repeat(n);
+      it(`should handle ${n} parentheses`, () => {
+        expect(() => calculate(expression)).not.toThrow();
+        expect(calculate(expression)).toBe("0");
+      });
+    };
+    getTest(100);
+    getTest(1000);
+    getTest(10_000);
+    getTest(100_000);
+    getTest(1000_000);
+  });
+
+  it("should not throw MaximumPrecisionError for adding big scales", () => {
+    const hugeDecimal1 = "0." + "0".repeat(5_000) + "1";
+    const hugeDecimal2 = "0." + "0".repeat(10_000) + "1";
+    expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
+      MaximumPrecisionError,
+    );
+  }, 10_000);
 });
