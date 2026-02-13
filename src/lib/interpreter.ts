@@ -190,7 +190,8 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
     while (
       ops.length > 0 &&
-      (isUnary || isRightAssociative
+      !isUnary &&
+      (isRightAssociative
         ? precedence[ops[ops.length - 1]!] > precedence[currentOp]
         : precedence[ops[ops.length - 1]!] >= precedence[currentOp])
     ) {
@@ -292,8 +293,9 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const finalN = stackN.pop();
   const finalD = stackD.pop();
-  if (finalN === undefined || finalD === undefined)
+  if (finalN === undefined || finalD === undefined) {
     throw new UnexpectedEndOfExpressionError();
+  }
 
   return simplify(finalN, finalD);
 }
