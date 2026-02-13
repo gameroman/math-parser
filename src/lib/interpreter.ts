@@ -186,9 +186,11 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
     const isUnary = isUnaryOperation(currentOp);
+    const isRightAssociative = currentOp === "POWER";
+
     while (
       ops.length > 0 &&
-      (isUnary
+      (isUnary || isRightAssociative
         ? precedence[ops[ops.length - 1]!] > precedence[currentOp]
         : precedence[ops[ops.length - 1]!] >= precedence[currentOp])
     ) {
