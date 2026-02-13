@@ -168,6 +168,16 @@ describe("evaluate", () => {
     expect(calculate("(-1)^-1^(-1)")).toBe("-1");
     expect(calculate("(-1)^(-1)^-1")).toBe("-1");
   });
+
+  it("should handle scientific notation", () => {
+    expect(calculate("1e2")).toBe("100");
+    expect(calculate("1e-2")).toBe("0.01");
+  });
+
+  it("should handle scientific notation with decimal", () => {
+    expect(calculate("1.2e3")).toBe("1200");
+    expect(calculate("1.2e-3")).toBe("0.0012");
+  });
 });
 
 describe("evaluate - error handling", () => {
