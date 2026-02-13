@@ -145,6 +145,12 @@ describe("evaluate", () => {
     expect(calculate("8 - 2(1 + 2)")).toBe("2");
   });
 
+  it("should have have higher precedence for implicit multiplication", () => {
+    expect(calculate("6 / 2(1 + 2)")).toBe("1");
+    expect(calculate("2 ^ 3(1+2)")).toBe("512");
+    expect(calculate("2(1+2) ^ 3")).toBe("216");
+  });
+
   it("should correctly handle a decimal", () => {
     expect(calculate("0.1")).toBe("0.1");
     expect(calculate("0.01")).toBe("0.01");
