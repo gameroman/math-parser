@@ -200,7 +200,7 @@ describe("evaluate", () => {
     expect(calculate("3^3")).toBe("27");
   });
 
-  it("should respect operator precedence for exponentiation", () => {
+  it("should follow right-associativity for exponentiation", () => {
     expect(calculate("2^3^2")).toBe("512");
     expect(calculate("2^2^3")).toBe("256");
   });
