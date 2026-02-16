@@ -184,6 +184,15 @@ describe("evaluate", () => {
     expect(calculate("5!")).toBe("120");
     expect(calculate("0!")).toBe("1");
   });
+
+  it("should handle factorial with implicit multiplication", () => {
+    expect(calculate("(3!)(2)")).toBe("12");
+    expect(calculate("3!(2)")).toBe("12");
+    expect(calculate("3!2")).toBe("12");
+    expect(calculate("3!2!")).toBe("12");
+    expect(calculate("(3)!2")).toBe("12");
+    expect(calculate("(3)!(2)")).toBe("12");
+  });
 });
 
 describe("evaluate - error handling", () => {

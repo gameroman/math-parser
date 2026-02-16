@@ -20,8 +20,8 @@ const precedence = {
   UNARY_PLUS: 4,
   UNARY_MINUS: 4,
   POWER: 6,
-  FACTORIAL: 8,
-  IMPLICIT_MUL: 10,
+  IMPLICIT_MUL: 8,
+  FACTORIAL: 10,
 } as const;
 
 type StackOp = keyof typeof precedence;
