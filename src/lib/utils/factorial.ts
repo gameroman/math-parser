@@ -23,12 +23,19 @@ function getPrimes(limit: number): number[] {
 }
 
 /**
- * Calculates n! exactly using Prime Power Decomposition.
- * Most efficient for very large n (e.g., n > 10,000).
+ * Calculates factorial.
  */
 export function factorial(n: bigint): bigint | null {
   if (n < 0n) return null;
   if (n === 0n || n === 1n) return 1n;
+
+  if (n < 1000n) {
+    let result = 1n;
+    for (let i = 2n; i <= n; i++) {
+      result *= i;
+    }
+    return result;
+  }
 
   const limit = Number(n);
   const primes = getPrimes(limit);
