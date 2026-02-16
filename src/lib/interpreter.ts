@@ -8,6 +8,8 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
 } from "./errors";
+import { factorial } from "./utils/factorial";
+import { gcd } from "./utils/gcd";
 
 const precedence = {
   LPAREN: 0,
@@ -15,10 +17,11 @@ const precedence = {
   SUBTRACT: 1,
   MULTIPLY: 2,
   DIVIDE: 2,
-  UNARY_PLUS: 3,
-  UNARY_MINUS: 3,
-  POWER: 4,
-  IMPLICIT_MUL: 5,
+  UNARY_PLUS: 4,
+  UNARY_MINUS: 4,
+  POWER: 6,
+  IMPLICIT_MUL: 8,
+  FACTORIAL: 10,
 } as const;
 
 type StackOp = keyof typeof precedence;
@@ -27,33 +30,6 @@ export type HighPrecision = {
   n: bigint; // Numerator
   d: bigint; // Denominator
 };
-
-/**
- * Fast Binary GCD (Stein's Algorithm) for BigInt.
- */
-function gcd(a: bigint, b: bigint): bigint {
-  if (a === b) return a;
-  if (a === 1n || b === 1n) return 1n;
-  if (a === 0n) return b;
-  if (b === 0n) return a;
-
-  a = a < 0n ? -a : a;
-  b = b < 0n ? -b : b;
-
-  let shift = 0n;
-  while (((a | b) & 1n) === 0n) {
-    a >>= 1n;
-    b >>= 1n;
-    shift++;
-  }
-  while ((a & 1n) === 0n) a >>= 1n;
-  do {
-    while ((b & 1n) === 0n) b >>= 1n;
-    if (a > b) [a, b] = [b, a];
-    b = b - a;
-  } while (b !== 0n);
-  return a << shift;
-}
 
 /**
  * Reduces a fraction to its simplest form.
@@ -94,8 +70,9 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
     const rN = stackN.pop();
     const rD = stackD.pop();
-    if (rN === undefined || rD === undefined)
+    if (rN === undefined || rD === undefined) {
       throw new UnexpectedEndOfExpressionError();
+    }
 
     if (isUnaryOperation(op)) {
       stackN.push(op === "UNARY_MINUS" ? -rN : rN);
@@ -103,10 +80,24 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       return;
     }
 
+    if (op === "FACTORIAL") {
+      const reduced = simplify(rN, rD);
+      if (reduced.d !== 1n || reduced.n < 0n) {
+        throw new InterpreterError(
+          "Factorial is only defined for non-negative integers",
+          pos,
+        );
+      }
+      stackN.push(factorial(reduced.n)!);
+      stackD.push(1n);
+      return;
+    }
+
     const lN = stackN.pop();
     const lD = stackD.pop();
-    if (lN === undefined || lD === undefined)
+    if (lN === undefined || lD === undefined) {
       throw new InsufficientOperandsError(pos);
+    }
 
     let resN: bigint;
     let resD: bigint;
@@ -219,6 +210,12 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         let d = fl === 0 ? 1n : 10n ** BigInt(fl);
 
         if (token.exponent) {
+          if (token.exponent.length > MAX_PRECISION) {
+            throw new MaximumPrecisionError(
+              token.exponent.length,
+              MAX_PRECISION,
+            );
+          }
           const expValue = BigInt(token.exponent);
           if (expValue >= 0n) {
             n *= 10n ** expValue;
@@ -283,6 +280,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       }
       case "IMPLICIT_MUL": {
         pushOpWithPrecedence("IMPLICIT_MUL", token.pos);
+        break;
+      }
+      case "FACTORIAL": {
+        pushOpWithPrecedence("FACTORIAL", token.pos);
         break;
       }
     }
