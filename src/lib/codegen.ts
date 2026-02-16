@@ -46,6 +46,14 @@ export function serialize(tokens: Token[]): string {
         segment = "!";
         break;
       }
+      case "PIPE": {
+        segment = "|";
+        break;
+      }
+      case "FUNC": {
+        segment = token.id;
+        break;
+      }
     }
 
     if (i === 0) return segment;

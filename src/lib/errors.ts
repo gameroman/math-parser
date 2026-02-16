@@ -1,26 +1,25 @@
-export class LexerError extends Error {
-  constructor(
-    message: string,
-    public pos: number,
-  ) {
-    super(
-      pos !== undefined ? `LexerError: ${message} at position ${pos}` : message,
-    );
-    this.name = this.constructor.name;
+class GenericMathErrror extends Error {
+  pos?: number;
+  constructor(name: string, message: string, pos?: number) {
+    if (pos === undefined) {
+      super(`${name}: ${message}`);
+    } else {
+      super(`${name}: ${message} at position ${pos}`);
+    }
+    this.pos = pos;
+    this.name = name;
   }
 }
 
-export class InterpreterError extends Error {
-  constructor(
-    message: string,
-    public pos?: number,
-  ) {
-    super(
-      pos !== undefined
-        ? `InterpreterError: ${message} at position ${pos}`
-        : `InterpreterError: ${message}`,
-    );
-    this.name = this.constructor.name;
+export class LexerError extends GenericMathErrror {
+  constructor(message: string, pos: number) {
+    super(`LexerError`, message, pos);
+  }
+}
+
+export class InterpreterError extends GenericMathErrror {
+  constructor(message: string, pos?: number) {
+    super(`InterpreterError`, message, pos);
   }
 }
 
@@ -56,27 +55,13 @@ export class InsufficientOperandsError extends InterpreterError {
   }
 }
 
-export class ParserError extends Error {
-  constructor(
-    message: string,
-    public pos: number,
-  ) {
-    super(
-      pos !== undefined
-        ? `ParserError: ${message} at position ${pos}`
-        : `ParserError: ${message}`,
-    );
-    this.name = this.constructor.name;
-  }
-}
-
-export class MathSyntaxError extends ParserError {
+export class ParserError extends GenericMathErrror {
   constructor(message: string, pos: number) {
-    super(`Syntax Error: ${message}`, pos);
+    super(`ParserError`, message, pos);
   }
 }
 
-export class IncompleteExpressionError extends MathSyntaxError {
+export class IncompleteExpressionError extends ParserError {
   constructor(message: string, pos: number) {
     super(`Incomplete expression: ${message}`, pos);
   }

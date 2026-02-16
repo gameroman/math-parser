@@ -1,15 +1,25 @@
-import type { Token } from "./lexer";
+import type { Token, TokenBase } from "./lexer";
 
-import { IncompleteExpressionError, MathSyntaxError } from "./errors";
+import { IncompleteExpressionError, ParserError } from "./errors";
 import { getSym } from "./symbol";
 
-export type UnaryToken =
-  | { type: "UNARY_PLUS"; pos: number }
-  | { type: "UNARY_MINUS"; pos: number };
+export interface UnaryToken extends TokenBase {
+  type: "UNARY_PLUS" | "UNARY_MINUS";
+}
 
-export type ImplicitMulToken = { type: "IMPLICIT_MUL"; pos: number };
+export interface ImplicitMulToken extends TokenBase {
+  type: "IMPLICIT_MUL";
+}
 
-export type ParsedToken = Token | UnaryToken | ImplicitMulToken;
+interface AbsToken extends TokenBase {
+  type: "ABS_OPEN" | "ABS_CLOSE";
+}
+
+export type ParsedToken =
+  | Exclude<Token, { type: "PIPE" }>
+  | UnaryToken
+  | ImplicitMulToken
+  | AbsToken;
 
 function isThisUnaryToken(prev?: Token) {
   // A '+' or '-' is unary if it's at the start or follows an operator/paren
@@ -28,17 +38,18 @@ export function parse(tokens: Token[]): ParsedToken[] {
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]!;
     const prev = tokens[i - 1];
+    const prevParsed = result[result.length - 1];
 
     // --- Implicit Multiplication ---
     if (prev) {
-      const isImplicit =
+      const isImplicitMultiplication =
         (prev.type === "NUMBER" && token.type === "LPAREN") ||
         (prev.type === "RPAREN" && token.type === "LPAREN") ||
         (prev.type === "RPAREN" && token.type === "NUMBER") ||
         (prev.type === "FACTORIAL" && token.type === "NUMBER") ||
         (prev.type === "FACTORIAL" && token.type === "LPAREN");
 
-      if (isImplicit) {
+      if (isImplicitMultiplication) {
         result.push({ type: "IMPLICIT_MUL", pos: token.pos });
       }
     }
@@ -46,7 +57,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     // --- Syntax Validation ---
     if (["MUL", "DIV", "POW"].includes(token.type)) {
       if (isThisUnaryToken(prev)) {
-        throw new MathSyntaxError(
+        throw new ParserError(
           `Unexpected operator '${getSym(token)}'`,
           token.pos,
         );
@@ -58,17 +69,17 @@ export function parse(tokens: Token[]): ParsedToken[] {
         !prev ||
         ["PLUS", "MINUS", "MUL", "DIV", "POW", "LPAREN"].includes(prev.type)
       ) {
-        throw new MathSyntaxError("Unexpected factorial operator", token.pos);
+        throw new ParserError("Unexpected factorial operator", token.pos);
       }
     }
 
     if (prev && token.type === "NUMBER" && prev.type === "NUMBER") {
-      throw new MathSyntaxError("Missing operator between numbers", token.pos);
+      throw new ParserError("Missing operator between numbers", token.pos);
     }
 
     // You can't have '()' with nothing inside
     if (token.type === "RPAREN" && prev?.type === "LPAREN") {
-      throw new MathSyntaxError("Unexpected ')' after '('", token.pos);
+      throw new ParserError("Unexpected ')' after '('", token.pos);
     }
 
     // --- Unary Identification ---

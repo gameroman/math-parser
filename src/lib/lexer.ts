@@ -1,6 +1,6 @@
 import { LexerError } from "./errors";
 
-interface TokenBase {
+export interface TokenBase {
   pos: number;
 }
 
