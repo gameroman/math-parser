@@ -34,7 +34,9 @@ export function parse(tokens: Token[]): ParsedToken[] {
       const isImplicit =
         (prev.type === "NUMBER" && token.type === "LPAREN") ||
         (prev.type === "RPAREN" && token.type === "LPAREN") ||
-        (prev.type === "RPAREN" && token.type === "NUMBER");
+        (prev.type === "RPAREN" && token.type === "NUMBER") ||
+        (prev.type === "FACTORIAL" && token.type === "NUMBER") ||
+        (prev.type === "FACTORIAL" && token.type === "LPAREN");
 
       if (isImplicit) {
         result.push({ type: "IMPLICIT_MUL", pos: token.pos });
@@ -42,12 +44,21 @@ export function parse(tokens: Token[]): ParsedToken[] {
     }
 
     // --- Syntax Validation ---
-    if (token.type === "MUL" || token.type === "DIV" || token.type === "POW") {
+    if (["MUL", "DIV", "POW"].includes(token.type)) {
       if (isThisUnaryToken(prev)) {
         throw new MathSyntaxError(
           `Unexpected operator '${getSym(token)}'`,
           token.pos,
         );
+      }
+    }
+
+    if (token.type === "FACTORIAL") {
+      if (
+        !prev ||
+        ["PLUS", "MINUS", "MUL", "DIV", "POW", "LPAREN"].includes(prev.type)
+      ) {
+        throw new MathSyntaxError("Unexpected factorial operator", token.pos);
       }
     }
 

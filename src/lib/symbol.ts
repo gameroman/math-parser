@@ -12,7 +12,8 @@ const symbolMap = {
   RPAREN: ")",
   POW: "^",
   IMPLICIT_MUL: "",
-} satisfies Record<string, string>;
+  FACTORIAL: "!",
+} satisfies Record<Exclude<ParsedToken["type"], "NUMBER">, string>;
 
 export const prettifyNumber = (t: TokenNumber) =>
   t.fraction ? `${t.whole}.${t.fraction}` : t.whole;

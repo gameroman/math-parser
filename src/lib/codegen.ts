@@ -42,6 +42,10 @@ export function serialize(tokens: Token[]): string {
         segment = "^";
         break;
       }
+      case "FACTORIAL": {
+        segment = "!";
+        break;
+      }
     }
 
     if (i === 0) return segment;
