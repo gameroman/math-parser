@@ -11,6 +11,15 @@ export interface TokenNumber extends TokenBase {
   exponent?: string;
 }
 
+interface TokenFn extends TokenBase {
+  type: "FUNC";
+  id: string;
+}
+
+interface TokenFnAbs extends TokenFn {
+  id: "abs";
+}
+
 export type Token =
   | TokenNumber
   | { type: "PLUS"; pos: number }
@@ -19,8 +28,10 @@ export type Token =
   | { type: "DIV"; pos: number }
   | { type: "POW"; pos: number }
   | { type: "FACTORIAL"; pos: number }
+  | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
-  | { type: "RPAREN"; pos: number };
+  | { type: "RPAREN"; pos: number }
+  | TokenFnAbs;
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
@@ -31,6 +42,11 @@ function isWhitespace(ch?: string): ch is " " {
 function isDigit(ch?: string): ch is Digit {
   if (ch === undefined) return false;
   return ch >= "0" && ch <= "9";
+}
+
+function isAlpha(ch?: string): ch is string {
+  if (ch === undefined) return false;
+  return ch >= "a" && ch <= "z";
 }
 
 export interface LexerOptions {
@@ -131,6 +147,21 @@ export function tokenize(
       continue;
     }
 
+    if (isAlpha(ch)) {
+      let id = "";
+      while (index < length && isAlpha(expression[index])) {
+        id += expression[index];
+        index++;
+      }
+
+      if (id === "abs") {
+        tokens.push({ type: "FUNC", id, pos: startPos });
+        continue;
+      }
+
+      throw new LexerError(`Unknown identifier '${id}'`, startPos);
+    }
+
     if (ch === "(") {
       tokens.push({ type: "LPAREN", pos: startPos });
       index++;
@@ -175,6 +206,12 @@ export function tokenize(
 
     if (ch === "!") {
       tokens.push({ type: "FACTORIAL", pos: startPos });
+      index++;
+      continue;
+    }
+
+    if (ch === "|") {
+      tokens.push({ type: "PIPE", pos: startPos });
       index++;
       continue;
     }
