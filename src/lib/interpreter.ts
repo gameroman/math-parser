@@ -13,6 +13,7 @@ import { gcd } from "./utils/gcd";
 
 const precedence = {
   LPAREN: 0,
+  ABS_OPEN: 0,
   ADD: 1,
   SUBTRACT: 1,
   MULTIPLY: 2,
@@ -21,6 +22,7 @@ const precedence = {
   UNARY_MINUS: 4,
   POWER: 6,
   IMPLICIT_MUL: 8,
+  ABS_FN: 9,
   FACTORIAL: 10,
 } as const;
 
@@ -43,7 +45,7 @@ function simplify(n: bigint, d: bigint): HighPrecision {
 }
 
 function isUnaryOperation(op: StackOp) {
-  return op === "UNARY_PLUS" || op === "UNARY_MINUS";
+  return op === "UNARY_PLUS" || op === "UNARY_MINUS" || op === "ABS_FN";
 }
 
 /**
@@ -66,7 +68,7 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
 
   const applyOp = (pos?: number) => {
     const op = ops.pop();
-    if (!op || op === "LPAREN") return;
+    if (!op || op === "LPAREN" || op === "ABS_OPEN") return;
 
     const rN = stackN.pop();
     const rD = stackD.pop();
@@ -75,7 +77,10 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
     }
 
     if (isUnaryOperation(op)) {
-      stackN.push(op === "UNARY_MINUS" ? -rN : rN);
+      let resN = rN;
+      if (op === "UNARY_MINUS") resN = -rN;
+      if (op === "ABS_FN") resN = rN < 0n ? -rN : rN; // Absolute value logic
+      stackN.push(resN);
       stackD.push(rD);
       return;
     }
@@ -250,6 +255,37 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
         ops.pop();
         break;
       }
+      case "ABS_OPEN": {
+        ops.push("ABS_OPEN");
+        break;
+      }
+      case "ABS_CLOSE": {
+        let foundMatch = false;
+        while (ops.length > 0) {
+          if (ops[ops.length - 1] === "ABS_OPEN") {
+            foundMatch = true;
+            break;
+          }
+          applyOp(token.pos);
+        }
+        if (!foundMatch) {
+          throw new InterpreterError(
+            "Mismatched absolute value pipe",
+            token.pos,
+          );
+        }
+
+        ops.pop();
+        const n = stackN.pop();
+        const d = stackD.pop();
+        if (n === undefined || d === undefined) {
+          throw new UnexpectedEndOfExpressionError();
+        }
+
+        stackN.push(n < 0n ? -n : n);
+        stackD.push(d);
+        break;
+      }
       case "PLUS": {
         pushOpWithPrecedence("ADD", token.pos);
         break;
@@ -285,6 +321,16 @@ export function evaluate(tokens: ParsedToken[]): HighPrecision {
       case "FACTORIAL": {
         pushOpWithPrecedence("FACTORIAL", token.pos);
         break;
+      }
+      case "FUNC": {
+        if (token.id === "abs") {
+          pushOpWithPrecedence("ABS_FN", token.pos);
+        } else {
+          throw new InterpreterError(
+            `Unknown function '${token.id}'`,
+            token.pos,
+          );
+        }
       }
     }
   }

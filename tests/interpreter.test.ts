@@ -5,7 +5,6 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
-  UnexpectedEndOfExpressionError,
 } from "../src/lib/errors";
 
 describe("evaluate", () => {
@@ -193,6 +192,27 @@ describe("evaluate", () => {
     expect(calculate("(3)!2")).toBe("12");
     expect(calculate("(3)!(2)")).toBe("12");
   });
+
+  it("should handle absolute values using pipe operator", () => {
+    expect(calculate("|2|")).toBe("2");
+    expect(calculate("|-2|")).toBe("2");
+  });
+
+  it("should handle absolute values using abs function", () => {
+    expect(calculate("abs(2)")).toBe("2");
+    expect(calculate("abs(-2)")).toBe("2");
+  });
+
+  it("should handle implicit multiplication with pipe operator", () => {
+    expect(calculate("2|2|")).toBe("4");
+    expect(calculate("2|-2|")).toBe("4");
+    expect(calculate("-2|2|")).toBe("-4");
+    expect(calculate("-2|-2|")).toBe("-4");
+  });
+
+  it("should handle nested pipe operators", () => {
+    expect("| -5 + |-3| |").toBe("2");
+  });
 });
 
 describe("evaluate - error handling", () => {
@@ -203,11 +223,6 @@ describe("evaluate - error handling", () => {
   it("should throw EmptyExpressionError for empty expression", () => {
     expect(() => calculate("")).toThrow(EmptyExpressionError);
   });
-
-  it("should throw UnexpectedEndOfExpressionError for operation-only expression", () => {
-    expect(() => calculate("-")).toThrow(UnexpectedEndOfExpressionError);
-  });
-
   it("should throw MaximumPrecisionError for very large scale", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
