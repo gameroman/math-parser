@@ -23,26 +23,24 @@ export type ParsedToken =
 type TokenType = (Token | ParsedToken)["type"];
 
 /**
- * Helper: Does the current context allow a +/- to be unary?
- */
-function isUnaryContext(last?: ParsedToken) {
-  if (!last) return true;
-  if (
-    last.type === "ABS_CLOSE" ||
-    last.type === "NUMBER" ||
-    last.type === "FACTORIAL" ||
-    last.type === "RPAREN"
-  )
-    return false;
-  return true;
-}
-
-/**
  * Helper: Is the last token an "operand" (something that can be followed by a closing pipe or implicit mul)?
  */
 function isOperand(last?: ParsedToken) {
   if (!last) return false;
-  return ["NUMBER", "RPAREN", "ABS_CLOSE", "FACTORIAL"].includes(last.type);
+  return (
+    last.type === "NUMBER" ||
+    last.type === "CONST" ||
+    last.type === "RPAREN" ||
+    last.type === "ABS_CLOSE" ||
+    last.type === "FACTORIAL"
+  );
+}
+
+/**
+ * Helper: Does the current context allow a +/- to be unary?
+ */
+function isUnaryContext(last?: ParsedToken) {
+  return !isOperand(last);
 }
 
 export function parse(tokens: Token[]): ParsedToken[] {
@@ -74,11 +72,12 @@ export function parse(tokens: Token[]): ParsedToken[] {
     }
 
     // --- Iplicit Multiplication ---
-    if (isOperand(prevParsed)) {
+    if (isOperand(result[result.length - 1])) {
       const needsImplicit =
         token.type === "LPAREN" ||
         token.type === "FUNC" ||
-        token.type === "NUMBER";
+        token.type === "NUMBER" ||
+        token.type === "CONST";
 
       if (needsImplicit) {
         result.push({ type: "IMPLICIT_MUL", pos: token.pos });
