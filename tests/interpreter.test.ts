@@ -193,7 +193,7 @@ describe("evaluate", () => {
     expect(calculate("(3)!(2)")).toBe("12");
   });
 
-  it("should handle absolute values using pipe operand", () => {
+  it("should handle absolute values using pipe operator", () => {
     expect(calculate("|2|")).toBe("2");
     expect(calculate("|-2|")).toBe("2");
   });
@@ -201,6 +201,13 @@ describe("evaluate", () => {
   it("should handle absolute values using abs function", () => {
     expect(calculate("abs(2)")).toBe("2");
     expect(calculate("abs(-2)")).toBe("2");
+  });
+
+  it("should handle more complex expressions with pipe operator", () => {
+    expect(calculate("2|2|")).toBe("4");
+    expect(calculate("2|-2|")).toBe("4");
+    expect(calculate("-2|2|")).toBe("-4");
+    expect(calculate("-2|-2|")).toBe("-4");
   });
 });
 
