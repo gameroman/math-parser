@@ -20,6 +20,11 @@ interface TokenFnAbs extends TokenFn {
   id: "abs";
 }
 
+interface TokenConstant extends TokenBase {
+  type: "CONSTANT";
+  id: "pi" | "e";
+}
+
 export type Token =
   | TokenNumber
   | { type: "PLUS"; pos: number }
@@ -31,6 +36,7 @@ export type Token =
   | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number }
+  | TokenConstant
   | TokenFnAbs;
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
@@ -156,6 +162,11 @@ export function tokenize(
 
       if (id === "abs") {
         tokens.push({ type: "FUNC", id, pos: startPos });
+        continue;
+      }
+
+      if (id === "pi" || id === "e") {
+        tokens.push({ type: "CONSTANT", id, pos: startPos });
         continue;
       }
 

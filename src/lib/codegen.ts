@@ -1,5 +1,4 @@
 import type { Token } from "./lexer";
-
 import { prettifyNumber } from "./symbol";
 
 /**

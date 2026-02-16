@@ -1,5 +1,3 @@
-import type { ParsedToken } from "./parser";
-
 import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
@@ -8,6 +6,7 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
 } from "./errors";
+import type { ParsedToken } from "./parser";
 import { factorial } from "./utils/factorial";
 import { gcd } from "./utils/gcd";
 

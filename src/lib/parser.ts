@@ -1,6 +1,5 @@
-import type { Token, TokenBase } from "./lexer";
-
 import { IncompleteExpressionError, ParserError } from "./errors";
+import type { Token, TokenBase } from "./lexer";
 import { getSym } from "./symbol";
 
 export interface UnaryToken extends TokenBase {

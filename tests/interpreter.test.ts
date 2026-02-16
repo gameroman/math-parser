@@ -211,7 +211,7 @@ describe("evaluate", () => {
   });
 
   it("should handle nested pipe operators", () => {
-    expect("| -5 + |-3| |").toBe("2");
+    expect(calculate("| -5 + |-3| |")).toBe("2");
   });
 });
 
