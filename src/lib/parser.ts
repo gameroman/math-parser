@@ -89,7 +89,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     prevParsed = result[result.length - 1];
 
     // --- Syntax Validation ---
-    if (["MUL", "DIV", "POW"].includes(token.type)) {
+    if (token.type === "MUL" || token.type === "DIV" || token.type === "POW") {
       if (isUnaryContext(prevParsed)) {
         throw new ParserError(
           `Unexpected operator '${getSym(token)}'`,
@@ -150,7 +150,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
   if (last && trailingOperators.includes(last.type)) {
     if (last.type === "FUNC") {
       throw new IncompleteExpressionError(
-        `trailing function '${getSym(last)}'`,
+        `trailing function '${last}'`,
         last.pos,
       );
     }

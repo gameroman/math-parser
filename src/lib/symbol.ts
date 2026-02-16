@@ -24,8 +24,9 @@ const symbolMap = {
 export const prettifyNumber = (t: TokenNumber) =>
   t.fraction ? `${t.whole}.${t.fraction}` : t.whole;
 
-export function getSym(t: ParsedToken | Token): string {
+export function getSym(
+  t: Exclude<ParsedToken | Token, { type: "FUNC" }>,
+): string {
   if (t.type === "NUMBER") return prettifyNumber(t);
-  if (t.type === "FUNC") return t.id;
   return symbolMap[t.type];
 }
