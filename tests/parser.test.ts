@@ -24,6 +24,10 @@ describe("parse", () => {
     expect(() => calculate("5 +")).toThrow(/trailing operator '\+'/);
   });
 
+  it("should throw IncompleteExpressionError for operation-only expression", () => {
+    expect(() => calculate("-")).toThrow(IncompleteExpressionError);
+  });
+
   it("should throw ParserError for leading multiplication", () => {
     expect(() => calculate("* 5")).toThrow(ParserError);
   });

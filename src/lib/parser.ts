@@ -21,42 +21,76 @@ export type ParsedToken =
   | ImplicitMulToken
   | AbsToken;
 
-function isThisUnaryToken(prev?: Token) {
-  // A '+' or '-' is unary if it's at the start or follows an operator/paren
-  return (
-    !prev ||
-    prev.type === "LPAREN" ||
-    ["PLUS", "MINUS", "MUL", "DIV", "POW"].includes(prev.type)
-  );
+type TokenType = (Token | ParsedToken)["type"];
+
+/**
+ * Helper: Does the current context allow a +/- to be unary?
+ */
+function isUnaryContext(last?: ParsedToken) {
+  if (!last) return true;
+  if (
+    last.type === "ABS_CLOSE" ||
+    last.type === "NUMBER" ||
+    last.type === "FACTORIAL" ||
+    last.type === "RPAREN"
+  )
+    return false;
+  return true;
+}
+
+/**
+ * Helper: Is the last token an "operand" (something that can be followed by a closing pipe or implicit mul)?
+ */
+function isOperand(last?: ParsedToken) {
+  if (!last) return false;
+  return ["NUMBER", "RPAREN", "ABS_CLOSE", "FACTORIAL"].includes(last.type);
 }
 
 export function parse(tokens: Token[]): ParsedToken[] {
   if (tokens.length === 0) return [];
 
   const result: ParsedToken[] = [];
+  let absStack = 0;
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]!;
     const prev = tokens[i - 1];
-    const prevParsed = result[result.length - 1];
+    let prevParsed = result[result.length - 1];
 
-    // --- Implicit Multiplication ---
-    if (prev) {
-      const isImplicitMultiplication =
-        (prev.type === "NUMBER" && token.type === "LPAREN") ||
-        (prev.type === "RPAREN" && token.type === "LPAREN") ||
-        (prev.type === "RPAREN" && token.type === "NUMBER") ||
-        (prev.type === "FACTORIAL" && token.type === "NUMBER") ||
-        (prev.type === "FACTORIAL" && token.type === "LPAREN");
+    // --- Handle Pipes ---
+    if (token.type === "PIPE") {
+      const isClosing = absStack > 0 && isOperand(prevParsed);
 
-      if (isImplicitMultiplication) {
+      if (isClosing) {
+        result.push({ type: "ABS_CLOSE", pos: token.pos });
+        absStack--;
+      } else {
+        if (isOperand(prevParsed)) {
+          result.push({ type: "IMPLICIT_MUL", pos: token.pos });
+        }
+        result.push({ type: "ABS_OPEN", pos: token.pos });
+        absStack++;
+      }
+      continue;
+    }
+
+    // --- Iplicit Multiplication ---
+    if (isOperand(prevParsed)) {
+      const needsImplicit =
+        token.type === "LPAREN" ||
+        token.type === "FUNC" ||
+        token.type === "NUMBER";
+
+      if (needsImplicit) {
         result.push({ type: "IMPLICIT_MUL", pos: token.pos });
       }
     }
 
+    prevParsed = result[result.length - 1];
+
     // --- Syntax Validation ---
     if (["MUL", "DIV", "POW"].includes(token.type)) {
-      if (isThisUnaryToken(prev)) {
+      if (isUnaryContext(prevParsed)) {
         throw new ParserError(
           `Unexpected operator '${getSym(token)}'`,
           token.pos,
@@ -65,10 +99,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     }
 
     if (token.type === "FACTORIAL") {
-      if (
-        !prev ||
-        ["PLUS", "MINUS", "MUL", "DIV", "POW", "LPAREN"].includes(prev.type)
-      ) {
+      if (!isOperand(prevParsed) && prevParsed?.type !== "RPAREN") {
         throw new ParserError("Unexpected factorial operator", token.pos);
       }
     }
@@ -77,15 +108,14 @@ export function parse(tokens: Token[]): ParsedToken[] {
       throw new ParserError("Missing operator between numbers", token.pos);
     }
 
-    // You can't have '()' with nothing inside
-    if (token.type === "RPAREN" && prev?.type === "LPAREN") {
+    if (token.type === "RPAREN" && prevParsed?.type === "LPAREN") {
       throw new ParserError("Unexpected ')' after '('", token.pos);
     }
 
     // --- Unary Identification ---
     if (
       (token.type === "PLUS" || token.type === "MINUS") &&
-      isThisUnaryToken(prev)
+      isUnaryContext(prevParsed)
     ) {
       result.push({
         type: token.type === "PLUS" ? "UNARY_PLUS" : "UNARY_MINUS",
@@ -96,9 +126,34 @@ export function parse(tokens: Token[]): ParsedToken[] {
     }
   }
 
-  // --- Trailing Operator Validation ---
+  // --- Final State Validation ---
+  if (absStack > 0) {
+    throw new ParserError(
+      "Unclosed absolute value '|'",
+      result[result.length - 1]?.pos ?? 0,
+    );
+  }
+
   const last = result[result.length - 1];
-  if (last && ["PLUS", "MINUS", "MUL", "DIV", "POW"].includes(last.type)) {
+  const trailingOperators: TokenType[] = [
+    "PLUS",
+    "MINUS",
+    "MUL",
+    "DIV",
+    "POW",
+    "UNARY_PLUS",
+    "UNARY_MINUS",
+    "FUNC",
+    "ABS_OPEN",
+  ];
+
+  if (last && trailingOperators.includes(last.type)) {
+    if (last.type === "FUNC") {
+      throw new IncompleteExpressionError(
+        `trailing function '${getSym(last)}'`,
+        last.pos,
+      );
+    }
     throw new IncompleteExpressionError(
       `trailing operator '${getSym(last)}'`,
       last.pos,
