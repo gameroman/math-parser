@@ -18,6 +18,7 @@ export type Token =
   | { type: "MUL"; pos: number }
   | { type: "DIV"; pos: number }
   | { type: "POW"; pos: number }
+  | { type: "FACTORIAL"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number };
 
@@ -49,7 +50,7 @@ export function tokenize(
   const length = expression.length;
 
   while (index < length) {
-    const ch = expression[index];
+    const ch = expression[index]!;
     const startPos = index;
 
     if (isWhitespace(ch)) {
@@ -168,6 +169,12 @@ export function tokenize(
 
     if (ch === "^") {
       tokens.push({ type: "POW", pos: startPos });
+      index++;
+      continue;
+    }
+
+    if (ch === "!") {
+      tokens.push({ type: "FACTORIAL", pos: startPos });
       index++;
       continue;
     }
