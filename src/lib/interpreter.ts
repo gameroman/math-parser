@@ -27,7 +27,7 @@ const precedence = {
 
 type StackOp = keyof typeof precedence;
 
-export type HighPrecision = {
+export type Value = {
   n: bigint; // Numerator
   d: bigint; // Denominator
 };
@@ -35,7 +35,7 @@ export type HighPrecision = {
 /**
  * Reduces a fraction to its simplest form.
  */
-function simplify(n: bigint, d: bigint): HighPrecision {
+function simplify(n: bigint, d: bigint): Value {
   if (d === 0n) throw new InterpreterError("Division by zero");
   if (n === 0n) return { n: 0n, d: 1n };
   const common = gcd(n, d);
@@ -56,7 +56,7 @@ const MAX_PRECISION = 50_000;
  */
 const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
-export function evaluate(tokens: ParsedToken[]): HighPrecision {
+export function evaluate(tokens: ParsedToken[]): Value {
   if (tokens.length === 0) {
     throw new EmptyExpressionError();
   }

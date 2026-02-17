@@ -1,4 +1,4 @@
-import { evaluate, type HighPrecision } from "./lib/interpreter";
+import { evaluate, type Value } from "./lib/interpreter";
 import { tokenize } from "./lib/lexer";
 import { parse } from "./lib/parser";
 
@@ -15,7 +15,7 @@ export type FormatOptions =
  * Converts Rational Fraction (n/d) to a Decimal or Fraction String.
  */
 export function formatResult(
-  hp: HighPrecision,
+  hp: Value,
   options: FormatOptions = {},
 ): string {
   const { n, d } = hp;
