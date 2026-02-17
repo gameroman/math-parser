@@ -29,8 +29,7 @@ export function formatResult(
   }
 
   // --- Decimal Format Logic ---
-  const maxDecimals =
-    options.format === "decimal" ? (options.maxDecimals ?? 20) : 20;
+  const maxDecimals = options.maxDecimals ?? 30;
 
   const isNegative = n < 0n;
   const absN = n < 0n ? -n : n;
