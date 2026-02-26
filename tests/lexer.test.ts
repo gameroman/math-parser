@@ -24,7 +24,6 @@ describe("tokenize", () => {
   });
 
   it("shoud throw LexerError for invalid scientific notation", () => {
-    expect(() => tokenize("1e2e")).toThrow(LexerError);
     expect(() => tokenize("1e2.3")).toThrow(LexerError);
     expect(() => tokenize("1e2e3")).toThrow(LexerError);
     expect(() => tokenize("e1")).toThrow(LexerError);
@@ -36,5 +35,10 @@ describe("tokenize", () => {
     expect(() => tokenize("1e-3")).not.toThrow(LexerError);
     expect(() => tokenize("1.2e-3")).not.toThrow(LexerError);
     expect(() => tokenize("-1e2")).not.toThrow(LexerError);
+  });
+
+  it("shoud not throw LexerError for mix of valid scientific notation and `e` constant", () => {
+    expect(() => tokenize("2e")).not.toThrow(LexerError);
+    expect(() => tokenize("1e2e")).not.toThrow(LexerError);
   });
 });
