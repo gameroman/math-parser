@@ -119,29 +119,25 @@ export function tokenize(
         index < length &&
         (expression[index] === "e" || expression[index] === "E")
       ) {
-        let expBuffer = "";
-        const ePos = index;
-        index++; // Skip 'e'
+        let lookahead = index + 1;
+        let sign = "";
 
-        // Optional sign for exponent
-        if (
-          index < length &&
-          (expression[index] === "+" || expression[index] === "-")
-        ) {
-          expBuffer += expression[index];
-          index++;
+        const next = expression[lookahead];
+
+        if (lookahead < length && (next === "+" || next === "-")) {
+          sign = next;
+          lookahead++;
         }
 
-        const expDigitsStart = index;
-        while (index < length && isDigit(expression[index])) {
-          expBuffer += expression[index];
-          index++;
+        if (lookahead < length && isDigit(expression[lookahead])) {
+          index = lookahead;
+          let expBuffer = sign;
+          while (index < length && isDigit(expression[index])) {
+            expBuffer += expression[index];
+            index++;
+          }
+          exponent = expBuffer;
         }
-
-        if (index === expDigitsStart) {
-          throw new LexerError("Expected digits for exponent", ePos);
-        }
-        exponent = expBuffer;
       }
 
       // Final check for trailing separators
