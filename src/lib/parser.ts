@@ -102,7 +102,11 @@ export function parse(tokens: Token[]): ParsedToken[] {
       }
     }
 
-    if (prev && token.type === "NUMBER" && prev.type === "NUMBER") {
+    if (
+      prev &&
+      (prev.type === "NUMBER" || prev.type === "CONST") &&
+      token.type === "NUMBER"
+    ) {
       throw new ParserError("Missing operator between numbers", token.pos);
     }
 
