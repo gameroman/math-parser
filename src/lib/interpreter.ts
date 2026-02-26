@@ -30,6 +30,7 @@ type StackOp = keyof typeof precedence;
 export type Value = {
   n: bigint; // Numerator
   d: bigint; // Denominator
+  c?: "pi" | "e";
 };
 
 /**
@@ -322,14 +323,13 @@ export function evaluate(tokens: ParsedToken[]): Value {
         break;
       }
       case "FUNC": {
-        if (token.id === "abs") {
-          pushOpWithPrecedence("ABS_FN", token.pos);
-        } else {
-          throw new InterpreterError(
-            `Unknown function '${token.id}'`,
-            token.pos,
-          );
+        switch (token.id) {
+          case "abs": {
+            pushOpWithPrecedence("ABS_FN", token.pos);
+            break;
+          }
         }
+        break;
       }
     }
   }
