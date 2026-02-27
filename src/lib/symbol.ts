@@ -17,7 +17,7 @@ const symbolMap = {
   ABS_OPEN: "|",
   PIPE: "|",
 } satisfies Record<
-  Exclude<(Token | ParsedToken)["type"], "NUMBER" | "FUNC">,
+  Exclude<(Token | ParsedToken)["type"], "NUMBER" | "FUNC" | "CONST">,
   string
 >;
 
@@ -28,5 +28,6 @@ export function getSym(
   t: Exclude<ParsedToken | Token, { type: "FUNC" }>,
 ): string {
   if (t.type === "NUMBER") return prettifyNumber(t);
+  if (t.type === "CONST") return t.id;
   return symbolMap[t.type];
 }

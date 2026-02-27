@@ -103,6 +103,11 @@ describe("evaluate", () => {
     expect(calculate(".01")).toBe("0.01");
   });
 
+  it("should correctly handle a decimal with precise representation", () => {
+    expect(calculate("0.1", { format: "precise" })).toBe("1/10");
+    expect(calculate("0.01", { format: "precise" })).toBe("1/100");
+  });
+
   it("should correctly handle a decimal with implicit decimal part", () => {
     expect(calculate("1.")).toBe("1");
     expect(calculate("0.")).toBe("0");
@@ -211,7 +216,7 @@ describe("evaluate", () => {
   });
 
   it("should handle nested pipe operators", () => {
-    expect("| -5 + |-3| |").toBe("2");
+    expect(calculate("| -5 + |-3| |")).toBe("2");
   });
 });
 

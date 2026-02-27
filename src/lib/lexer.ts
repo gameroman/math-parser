@@ -20,6 +20,11 @@ interface TokenFnAbs extends TokenFn {
   id: "abs";
 }
 
+export interface TokenConst extends TokenBase {
+  type: "CONST";
+  id: "pi" | "e";
+}
+
 export type Token =
   | TokenNumber
   | { type: "PLUS"; pos: number }
@@ -31,6 +36,7 @@ export type Token =
   | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
   | { type: "RPAREN"; pos: number }
+  | TokenConst
   | TokenFnAbs;
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
@@ -113,29 +119,25 @@ export function tokenize(
         index < length &&
         (expression[index] === "e" || expression[index] === "E")
       ) {
-        let expBuffer = "";
-        const ePos = index;
-        index++; // Skip 'e'
+        let lookahead = index + 1;
+        let sign = "";
 
-        // Optional sign for exponent
-        if (
-          index < length &&
-          (expression[index] === "+" || expression[index] === "-")
-        ) {
-          expBuffer += expression[index];
-          index++;
+        const next = expression[lookahead];
+
+        if (lookahead < length && (next === "+" || next === "-")) {
+          sign = next;
+          lookahead++;
         }
 
-        const expDigitsStart = index;
-        while (index < length && isDigit(expression[index])) {
-          expBuffer += expression[index];
-          index++;
+        if (lookahead < length && isDigit(expression[lookahead])) {
+          index = lookahead;
+          let expBuffer = sign;
+          while (index < length && isDigit(expression[index])) {
+            expBuffer += expression[index];
+            index++;
+          }
+          exponent = expBuffer;
         }
-
-        if (index === expDigitsStart) {
-          throw new LexerError("Expected digits for exponent", ePos);
-        }
-        exponent = expBuffer;
       }
 
       // Final check for trailing separators
@@ -156,6 +158,11 @@ export function tokenize(
 
       if (id === "abs") {
         tokens.push({ type: "FUNC", id, pos: startPos });
+        continue;
+      }
+
+      if (id === "pi" || id === "e") {
+        tokens.push({ type: "CONST", id, pos: startPos });
         continue;
       }
 

@@ -39,4 +39,9 @@ describe("parse", () => {
   it("should throw ParserError for two space separated numbers", () => {
     expect(() => calculate("1 2")).toThrow(ParserError);
   });
+
+  it("should throw ParserError for constant followed by a number", () => {
+    expect(() => calculate("1e2e3")).toThrow(ParserError);
+    expect(() => calculate("e1")).toThrow(ParserError);
+  });
 });
