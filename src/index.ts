@@ -11,21 +11,25 @@ export type FormatOptions =
     }
   | { format: "precise" };
 
+const getConstantStr = (coeff: string, c?: Value["c"]) => {
+  if (!c) return coeff;
+  if (coeff === "1") return c;
+  if (coeff === "-1") return `-${c}`;
+  return `${coeff}${c}`;
+};
+
 /**
- * Converts Rational Fraction (n/d) to a Decimal or Fraction String.
+ * Converts Result to a Decimal or Fraction String.
  */
-export function formatResult(
-  hp: Value,
-  options: FormatOptions = {},
-): string {
-  const { n, d } = hp;
+export function formatResult(v: Value, options: FormatOptions = {}): string {
+  const { n, d, c } = v;
 
   if (d === 0n) return "NaN";
 
   // --- Fraction Format Logic ---
   if (options.format === "precise") {
-    if (d === 1n) return n.toString();
-    return `${n}/${d}`;
+    if (d === 1n) return getConstantStr(n.toString(), c);
+    return `${getConstantStr(n.toString(), c)}/${d}`;
   }
 
   // --- Decimal Format Logic ---
