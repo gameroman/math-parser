@@ -25,6 +25,13 @@ const precedence = {
   FACTORIAL: 10,
 } as const;
 
+import * as constants from "./constants";
+
+const constantsMap = {
+  e: constants.E,
+  pi: constants.PI,
+} as const;
+
 type StackOp = keyof typeof precedence;
 
 export type Value = {
@@ -57,10 +64,19 @@ const MAX_PRECISION = 50_000;
  */
 const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
-export function evaluate(tokens: ParsedToken[]): Value {
+interface PrecisionOptions {
+  format?: "decimal" | "precise";
+}
+
+export function evaluate(
+  tokens: ParsedToken[],
+  options: PrecisionOptions = {},
+): Value {
   if (tokens.length === 0) {
     throw new EmptyExpressionError();
   }
+
+  const { format } = options;
 
   const values: Value[] = [];
   const ops: StackOp[] = [];
@@ -245,7 +261,15 @@ export function evaluate(tokens: ParsedToken[]): Value {
         break;
       }
       case "CONST": {
-        values.push({ n: 1n, d: 1n, c: token.id });
+        if (format === "precise") {
+          values.push({ n: 1n, d: 1n, c: token.id });
+        } else {
+          const c = constantsMap[token.id];
+          values.push({
+            n: BigInt(c.replace(".", "")),
+            d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
+          });
+        }
         break;
       }
       case "LPAREN": {

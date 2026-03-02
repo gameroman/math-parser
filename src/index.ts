@@ -82,6 +82,6 @@ export function calculate(
 ): string {
   const tokens = tokenize(expression, options);
   const transformed = parse(tokens);
-  const result = evaluate(transformed);
+  const result = evaluate(transformed, options);
   return formatResult(result, options);
 }

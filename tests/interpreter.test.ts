@@ -6,6 +6,7 @@ import {
   MaximumPrecisionError,
   MismatchedParenthesisError,
 } from "../src/lib/errors";
+import { E, PI } from "../src/lib/constants";
 
 const win32 = process.platform === "win32";
 
@@ -232,6 +233,11 @@ describe("evaluate", () => {
     expect(calculate("e", { format: "precise" })).toBe("e");
     expect(calculate("3pi", { format: "precise" })).toBe("3pi");
     expect(calculate("3e", { format: "precise" })).toBe("3e");
+  });
+
+  it("should handle a constant in non-precise mode", () => {
+    expect(calculate("pi")).toBe(PI);
+    expect(calculate("e")).toBe(E);
   });
 
   it("should handle simple division of constants", () => {
