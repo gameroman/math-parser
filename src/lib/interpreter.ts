@@ -147,6 +147,11 @@ export function evaluate(tokens: ParsedToken[]): Value {
           resN = (lN / g1) * (rN / g2);
           resD = (lD / g2) * (rD / g1);
         }
+        if (lC === undefined && rC !== undefined) {
+          resC = rC;
+        } else if (lC !== undefined && rC === undefined) {
+          resC = lC;
+        }
         break;
       }
       case "DIVIDE": {
