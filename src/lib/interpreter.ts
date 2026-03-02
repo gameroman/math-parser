@@ -62,50 +62,51 @@ export function evaluate(tokens: ParsedToken[]): Value {
     throw new EmptyExpressionError();
   }
 
-  const stackN: bigint[] = [];
-  const stackD: bigint[] = [];
+  const values: Value[] = [];
   const ops: StackOp[] = [];
 
   const applyOp = (pos?: number) => {
     const op = ops.pop();
     if (!op || op === "LPAREN" || op === "ABS_OPEN") return;
 
-    const rN = stackN.pop();
-    const rD = stackD.pop();
-    if (rN === undefined || rD === undefined) {
+    const right = values.pop();
+    if (right === undefined) {
       throw new UnexpectedEndOfExpressionError();
     }
 
     if (isUnaryOperation(op)) {
+      const rN = right.n;
       let resN = rN;
       if (op === "UNARY_MINUS") resN = -rN;
       if (op === "ABS_FN") resN = rN < 0n ? -rN : rN; // Absolute value logic
-      stackN.push(resN);
-      stackD.push(rD);
+      values.push({ n: resN, d: right.d });
       return;
     }
 
     if (op === "FACTORIAL") {
-      const reduced = simplify(rN, rD);
+      const reduced = simplify(right.n, right.d);
       if (reduced.d !== 1n || reduced.n < 0n) {
         throw new InterpreterError(
           "Factorial is only defined for non-negative integers",
           pos,
         );
       }
-      stackN.push(factorial(reduced.n)!);
-      stackD.push(1n);
+      values.push({ n: factorial(reduced.n)!, d: 1n });
       return;
     }
 
-    const lN = stackN.pop();
-    const lD = stackD.pop();
-    if (lN === undefined || lD === undefined) {
+    const left = values.pop();
+    if (left === undefined) {
       throw new InsufficientOperandsError(pos);
     }
 
     let resN: bigint;
     let resD: bigint;
+
+    const lN = left.n;
+    const lD = left.d;
+    const rN = right.n;
+    const rD = right.d;
 
     switch (op) {
       case "ADD":
@@ -175,12 +176,9 @@ export function evaluate(tokens: ParsedToken[]): Value {
     }
 
     if (resD > SIMPLIFY_THRESHOLD) {
-      const reduced = simplify(resN, resD);
-      stackN.push(reduced.n);
-      stackD.push(reduced.d);
+      values.push(simplify(resN, resD));
     } else {
-      stackN.push(resN);
-      stackD.push(resD);
+      values.push({ n: resN, d: resD });
     }
   };
 
@@ -229,12 +227,9 @@ export function evaluate(tokens: ParsedToken[]): Value {
           }
         }
         if (d === 1n) {
-          stackN.push(n);
-          stackD.push(1n);
+          values.push({ n, d: 1n });
         } else {
-          const reduced = simplify(n, d);
-          stackN.push(reduced.n);
-          stackD.push(reduced.d);
+          values.push(simplify(n, d));
         }
         break;
       }
@@ -276,14 +271,12 @@ export function evaluate(tokens: ParsedToken[]): Value {
         }
 
         ops.pop();
-        const n = stackN.pop();
-        const d = stackD.pop();
-        if (n === undefined || d === undefined) {
+        const val = values.pop();
+        if (val === undefined) {
           throw new UnexpectedEndOfExpressionError();
         }
 
-        stackN.push(n < 0n ? -n : n);
-        stackD.push(d);
+        values.push({ n: val.n < 0n ? -val.n : val.n, d: val.d });
         break;
       }
       case "PLUS": {
@@ -338,18 +331,16 @@ export function evaluate(tokens: ParsedToken[]): Value {
     const top = ops[ops.length - 1];
     const lastPos = tokens[tokens.length - 1]?.pos ?? 0;
     if (top === "LPAREN") {
-      // Automatically close missing parentheses instead of throwing an error
       ops.pop();
       continue;
     }
     applyOp(lastPos);
   }
 
-  const finalN = stackN.pop();
-  const finalD = stackD.pop();
-  if (finalN === undefined || finalD === undefined) {
+  const finalValue = values.pop();
+  if (finalValue === undefined) {
     throw new UnexpectedEndOfExpressionError();
   }
 
-  return simplify(finalN, finalD);
+  return simplify(finalValue.n, finalValue.d);
 }
