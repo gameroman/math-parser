@@ -108,7 +108,7 @@ export function evaluate(
           pos,
         );
       }
-      if (reduced.n >= 1e8) {
+      if (reduced.n >= 4e5) {
         throw new OverflowError();
       }
       values.push({ n: factorial(reduced.n)!, d: 1n });
@@ -213,6 +213,10 @@ export function evaluate(
             resC = lC;
           }
           break;
+        }
+
+        if (baseN * exponent > 6e6 || baseD * exponent > 6e6) {
+          throw new OverflowError();
         }
 
         resN = baseN ** exponent;
