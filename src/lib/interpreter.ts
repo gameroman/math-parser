@@ -215,7 +215,10 @@ export function evaluate(
           break;
         }
 
-        if (baseN * exponent > 6e6 || baseD * exponent > 6e6) {
+        if (
+          exponent > 1e4 &&
+          (baseN * exponent > 6e6 || baseD * exponent > 6e6)
+        ) {
           throw new OverflowError();
         }
 
