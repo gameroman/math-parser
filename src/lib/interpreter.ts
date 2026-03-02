@@ -102,11 +102,14 @@ export function evaluate(tokens: ParsedToken[]): Value {
 
     let resN: bigint;
     let resD: bigint;
+    let resC: Value["c"];
 
     const lN = left.n;
     const lD = left.d;
+    const lC = left.c;
     const rN = right.n;
     const rD = right.d;
+    const rC = right.c;
 
     switch (op) {
       case "ADD":
@@ -127,6 +130,9 @@ export function evaluate(tokens: ParsedToken[]): Value {
             resN = isSub ? lN * mLeft - rN * mRight : lN * mLeft + rN * mRight;
             resD = lD * mLeft;
           }
+        }
+        if (lC === rC) {
+          resC = lC;
         }
         break;
       }
@@ -176,9 +182,9 @@ export function evaluate(tokens: ParsedToken[]): Value {
     }
 
     if (resD > SIMPLIFY_THRESHOLD) {
-      values.push(simplify({ n: resN, d: resD }));
+      values.push(simplify({ n: resN, d: resD, c: resC }));
     } else {
-      values.push({ n: resN, d: resD });
+      values.push({ n: resN, d: resD, c: resC });
     }
   };
 

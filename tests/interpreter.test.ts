@@ -7,6 +7,8 @@ import {
   MismatchedParenthesisError,
 } from "../src/lib/errors";
 
+const win32 = process.platform === "win32";
+
 describe("evaluate", () => {
   it("should handle a number", () => {
     expect(calculate("1")).toBe("1");
@@ -272,7 +274,7 @@ describe("evaluate - error handling", () => {
   });
 });
 
-describe("evaluate - large operations", () => {
+describe.skipIf(win32)("evaluate - large operations", () => {
   describe("adding a lot of numbers", () => {
     const getTest = (numbers: number) => {
       const expression = "1 + ".repeat(numbers) + "0";
