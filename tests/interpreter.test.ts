@@ -1,12 +1,13 @@
 import { describe, it, expect } from "bun:test";
 
 import { calculate } from "../src";
+import { E, PI } from "../src/lib/constants";
 import {
   EmptyExpressionError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
+  OverflowError,
 } from "../src/lib/errors";
-import { E, PI } from "../src/lib/constants";
 
 const win32 = process.platform === "win32";
 
@@ -281,9 +282,14 @@ describe("evaluate - error handling", () => {
   it("should throw EmptyExpressionError for empty expression", () => {
     expect(() => calculate("")).toThrow(EmptyExpressionError);
   });
+
   it("should throw MaximumPrecisionError for very large scale", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
+  });
+
+  it("should throw OverflowError for very large factorial", () => {
+    expect(() => calculate("(1e9)!")).toThrow(OverflowError);
   });
 });
 

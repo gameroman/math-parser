@@ -26,8 +26,14 @@ export class InterpreterError extends GenericMathErrror {
 export class MaximumPrecisionError extends InterpreterError {
   constructor(precision: number, maxPrecision: number) {
     super(
-      `Exceeded maximum precision of ${maxPrecision} digits (${precision}).`,
+      `Exceeded maximum precision of ${maxPrecision} digits (${precision})`,
     );
+  }
+}
+
+export class OverflowError extends InterpreterError {
+  constructor() {
+    super(`Overflow Error`);
   }
 }
 

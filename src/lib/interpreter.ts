@@ -5,6 +5,7 @@ import {
   InterpreterError,
   EmptyExpressionError,
   MaximumPrecisionError,
+  OverflowError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
 import { factorial } from "./utils/factorial";
@@ -106,6 +107,9 @@ export function evaluate(
           "Factorial is only defined for non-negative integers",
           pos,
         );
+      }
+      if (reduced.n >= 1e8) {
+        throw new OverflowError();
       }
       values.push({ n: factorial(reduced.n)!, d: 1n });
       return;
