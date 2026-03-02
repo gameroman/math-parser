@@ -225,11 +225,23 @@ describe("evaluate", () => {
     expect(calculate("| -5 + |-3| |")).toBe("2");
   });
 
+  it("should handle a constant", () => {
+    expect(calculate("pi", { format: "precise" })).toBe("pi");
+    expect(calculate("e", { format: "precise" })).toBe("e");
+  });
+
   it("should handle constants", () => {
     expect(calculate("pi/pi")).toBe("1");
     expect(calculate("e/e")).toBe("1");
     expect(calculate("2pi/2pi")).toBe("1");
     expect(calculate("2e/2e")).toBe("1");
+  });
+
+  it("should handle more constants", () => {
+    expect(calculate("2pi/pi")).toBe("2");
+    expect(calculate("2e/e")).toBe("2");
+    expect(calculate("pi/2pi")).toBe("0.5");
+    expect(calculate("e/2e")).toBe("0.5");
   });
 });
 
