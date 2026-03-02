@@ -291,11 +291,15 @@ describe("evaluate - error handling", () => {
   it("should throw OverflowError for very large factorial", () => {
     expect(() => calculate("(1e9)!")).toThrow(OverflowError);
     expect(() => calculate("(10^6)!")).toThrow(OverflowError);
-  });
+  }, 200);
 
   it("should throw OverflowError for very large exponentiation", () => {
     expect(() => calculate("10^10^10")).toThrow(OverflowError);
-  });
+  }, 200);
+
+  it("should throw OverflowError for very large exponentiation", () => {
+    expect(() => calculate("1e10000000")).toThrow(OverflowError);
+  }, 200);
 });
 
 describe.skipIf(win32)("evaluate - large operations", () => {

@@ -270,6 +270,9 @@ export function evaluate(
             );
           }
           const expValue = BigInt(token.exponent);
+          if (expValue > 2e6) {
+            throw new OverflowError();
+          }
           if (expValue >= 0n) {
             n *= 10n ** expValue;
           } else {
