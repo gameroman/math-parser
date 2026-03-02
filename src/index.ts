@@ -1,5 +1,5 @@
 import { evaluate, type Value } from "./lib/interpreter";
-import { tokenize } from "./lib/lexer";
+import { tokenize, type LexerOptions } from "./lib/lexer";
 import { parse } from "./lib/parser";
 
 // Use a Discriminated Union for type-safe options
@@ -75,14 +75,16 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
   return sign + result;
 }
 
+type CalculateOptions = FormatOptions & LexerOptions;
+
 /**
  * The main entry point for the library.
  */
 export function calculate(
   expression: string,
-  options: FormatOptions = {},
+  options?: CalculateOptions,
 ): string {
-  const tokens = tokenize(expression);
+  const tokens = tokenize(expression, options);
   const transformed = parse(tokens);
   const result = evaluate(transformed);
   return formatResult(result, options);

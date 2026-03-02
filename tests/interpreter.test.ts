@@ -228,20 +228,33 @@ describe("evaluate", () => {
   it("should handle a constant", () => {
     expect(calculate("pi", { format: "precise" })).toBe("pi");
     expect(calculate("e", { format: "precise" })).toBe("e");
+    expect(calculate("3pi", { format: "precise" })).toBe("3pi");
+    expect(calculate("3e", { format: "precise" })).toBe("3e");
   });
 
-  it("should handle constants", () => {
+  it("should handle simple division of constants", () => {
     expect(calculate("pi/pi")).toBe("1");
     expect(calculate("e/e")).toBe("1");
     expect(calculate("2pi/2pi")).toBe("1");
     expect(calculate("2e/2e")).toBe("1");
-  });
-
-  it("should handle more constants", () => {
     expect(calculate("2pi/pi")).toBe("2");
     expect(calculate("2e/e")).toBe("2");
     expect(calculate("pi/2pi")).toBe("0.5");
     expect(calculate("e/2e")).toBe("0.5");
+  });
+
+  it("should handle addition of constants", () => {
+    expect(calculate("pi + pi", { format: "precise" })).toBe("2pi");
+    expect(calculate("e + e", { format: "precise" })).toBe("2e");
+    expect(calculate("2pi + 3pi", { format: "precise" })).toBe("5pi");
+    expect(calculate("2e + 3e", { format: "precise" })).toBe("5e");
+  });
+
+  it("should handle multiplication of constants", () => {
+    expect(calculate("2 * pi", { format: "precise" })).toBe("2pi");
+    expect(calculate("2 * e", { format: "precise" })).toBe("2e");
+    expect(calculate("pi * 2", { format: "precise" })).toBe("2pi");
+    expect(calculate("e * 2", { format: "precise" })).toBe("2e");
   });
 });
 
