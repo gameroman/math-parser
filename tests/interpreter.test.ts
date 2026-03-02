@@ -108,6 +108,12 @@ describe("evaluate", () => {
     expect(calculate("0.01", { format: "precise" })).toBe("1/100");
   });
 
+  it("should correctly handle a fraction with precise representation", () => {
+    expect(calculate("1/2", { format: "precise" })).toBe("1/2");
+    expect(calculate("1/3", { format: "precise" })).toBe("1/3");
+    expect(calculate("1/2 + 1/3", { format: "precise" })).toBe("5/6");
+  });
+
   it("should correctly handle a decimal with implicit decimal part", () => {
     expect(calculate("1.")).toBe("1");
     expect(calculate("0.")).toBe("0");
@@ -217,6 +223,13 @@ describe("evaluate", () => {
 
   it("should handle nested pipe operators", () => {
     expect(calculate("| -5 + |-3| |")).toBe("2");
+  });
+
+  it("should handle constants", () => {
+    expect(calculate("pi/pi")).toBe("1");
+    expect(calculate("e/e")).toBe("1");
+    expect(calculate("2pi/2pi")).toBe("1");
+    expect(calculate("2e/2e")).toBe("1");
   });
 });
 
