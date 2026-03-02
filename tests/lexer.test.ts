@@ -39,4 +39,8 @@ describe("tokenize", () => {
     expect(() => tokenize("2e")).not.toThrow(LexerError);
     expect(() => tokenize("1e2e")).not.toThrow(LexerError);
   });
+
+  it("shoud not throw LexerError for mix of valid scientific notation and other constants", () => {
+    expect(() => tokenize("1e2pi")).not.toThrow(LexerError);
+  });
 });

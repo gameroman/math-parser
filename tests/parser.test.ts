@@ -41,7 +41,8 @@ describe("parse", () => {
   });
 
   it("should throw ParserError for constant followed by a number", () => {
-    expect(() => calculate("1e2e3")).toThrow(ParserError);
+    expect(() => calculate("pi2")).toThrow(ParserError);
     expect(() => calculate("e1")).toThrow(ParserError);
+    expect(() => calculate("1e2e3")).toThrow(ParserError);
   });
 });
