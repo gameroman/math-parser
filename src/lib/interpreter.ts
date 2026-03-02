@@ -36,12 +36,12 @@ export type Value = {
 /**
  * Reduces a fraction to its simplest form.
  */
-function simplify(n: bigint, d: bigint): Value {
-  if (d === 0n) throw new InterpreterError("Division by zero");
-  if (n === 0n) return { n: 0n, d: 1n };
-  const common = gcd(n, d);
-  const sign = d < 0n ? -1n : 1n;
-  return { n: (n / common) * sign, d: (d / common) * sign };
+function simplify(v: Value): Value {
+  if (v.d === 0n) throw new InterpreterError("Division by zero");
+  if (v.n === 0n) return { n: 0n, d: 1n, c: v.c };
+  const common = gcd(v.n, v.d);
+  const sign = v.d < 0n ? -1n : 1n;
+  return { n: (v.n / common) * sign, d: (v.d / common) * sign, c: v.c };
 }
 
 function isUnaryOperation(op: StackOp) {
@@ -84,7 +84,7 @@ export function evaluate(tokens: ParsedToken[]): Value {
     }
 
     if (op === "FACTORIAL") {
-      const reduced = simplify(right.n, right.d);
+      const reduced = simplify(right);
       if (reduced.d !== 1n || reduced.n < 0n) {
         throw new InterpreterError(
           "Factorial is only defined for non-negative integers",
@@ -151,7 +151,7 @@ export function evaluate(tokens: ParsedToken[]): Value {
         break;
       }
       case "POWER": {
-        const normalizedExp = simplify(rN, rD);
+        const normalizedExp = simplify(right);
 
         if (normalizedExp.d !== 1n) {
           throw new InterpreterError(
@@ -176,7 +176,7 @@ export function evaluate(tokens: ParsedToken[]): Value {
     }
 
     if (resD > SIMPLIFY_THRESHOLD) {
-      values.push(simplify(resN, resD));
+      values.push(simplify({ n: resN, d: resD }));
     } else {
       values.push({ n: resN, d: resD });
     }
@@ -229,7 +229,7 @@ export function evaluate(tokens: ParsedToken[]): Value {
         if (d === 1n) {
           values.push({ n, d: 1n });
         } else {
-          values.push(simplify(n, d));
+          values.push(simplify({ n, d }));
         }
         break;
       }
@@ -346,5 +346,5 @@ export function evaluate(tokens: ParsedToken[]): Value {
     throw new UnexpectedEndOfExpressionError();
   }
 
-  return simplify(finalValue.n, finalValue.d);
+  return simplify(finalValue);
 }
