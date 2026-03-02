@@ -102,6 +102,22 @@ export function parse(tokens: Token[]): ParsedToken[] {
       }
     }
 
+    if (token.type === "RPAREN") {
+      if (
+        prevParsed &&
+        (prevParsed.type === "PLUS" ||
+          prevParsed.type === "MINUS" ||
+          prevParsed.type === "MUL" ||
+          prevParsed.type === "DIV" ||
+          prevParsed.type === "POW")
+      ) {
+        throw new ParserError(
+          `Unexpected ')' after operator '${getSym(prevParsed)}'`,
+          token.pos,
+        );
+      }
+    }
+
     if (
       prev &&
       (prev.type === "NUMBER" || prev.type === "CONST") &&

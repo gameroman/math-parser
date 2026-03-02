@@ -19,7 +19,7 @@ const precedence = {
   DIVIDE: 2,
   UNARY_PLUS: 4,
   UNARY_MINUS: 4,
-  POWER: 6,
+  EXP: 6,
   IMPLICIT_MUL: 8,
   ABS_FN: 9,
   FACTORIAL: 10,
@@ -177,23 +177,38 @@ export function evaluate(
         resD = (lD / g2) * (rN / g1);
         break;
       }
-      case "POWER": {
-        const normalizedExp = simplify(right);
+      case "EXP": {
+        const normalizedExponent = simplify(right);
 
-        if (normalizedExp.d !== 1n) {
+        if (normalizedExponent.d !== 1n) {
           throw new InterpreterError(
-            `Fractional exponents ${normalizedExp.n}/${normalizedExp.d} are not supported yet`,
+            `Fractional exponents ${normalizedExponent.n}/${normalizedExponent.d} are not supported yet`,
           );
         }
 
         // Handling negative exponents: flip the fraction and make exponent positive
-        let exponent = normalizedExp.n;
+        let exponent = normalizedExponent.n;
         let baseN = lN;
         let baseD = lD;
 
         if (exponent < 0n) {
           [baseN, baseD] = [baseD, baseN];
           exponent = -exponent;
+        }
+
+        if (exponent === 0n) {
+          resN = 1n;
+          resD = 1n;
+          break;
+        }
+
+        if (exponent === 1n) {
+          resN = baseN;
+          resD = baseD;
+          if (normalizedExponent.c === undefined) {
+            resC = lC;
+          }
+          break;
         }
 
         resN = baseN ** exponent;
@@ -211,7 +226,7 @@ export function evaluate(
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
     const isUnary = isUnaryOperation(currentOp);
-    const isRightAssociative = currentOp === "POWER";
+    const isRightAssociative = currentOp === "EXP";
 
     while (
       ops.length > 0 &&
@@ -335,7 +350,7 @@ export function evaluate(
         break;
       }
       case "POW": {
-        pushOpWithPrecedence("POWER", token.pos);
+        pushOpWithPrecedence("EXP", token.pos);
         break;
       }
       case "UNARY_PLUS": {

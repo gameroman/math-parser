@@ -14,6 +14,11 @@ describe("parse", () => {
     expect(() => calculate("( * 2)")).toThrow(/Unexpected operator '\*'/);
   });
 
+  it("should throw ParserError for invalid closing parenthesis after an operator", () => {
+    expect(() => calculate("(5 * )")).toThrow(ParserError);
+    expect(() => calculate("(5 + )")).toThrow(ParserError);
+  });
+
   it("should throw ParserError for empty parentheses", () => {
     expect(() => calculate("()")).toThrow(ParserError);
   });

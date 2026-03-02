@@ -264,6 +264,13 @@ describe("evaluate", () => {
     expect(calculate("pi * 2", { format: "precise" })).toBe("2pi");
     expect(calculate("e * 2", { format: "precise" })).toBe("2e");
   });
+
+  it("should handle exponentiation of constants", () => {
+    expect(calculate("pi ^ 0", { format: "precise" })).toBe("1");
+    expect(calculate("e ^ 0", { format: "precise" })).toBe("1");
+    expect(calculate("pi ^ 1", { format: "precise" })).toBe("pi");
+    expect(calculate("e ^ 1", { format: "precise" })).toBe("e");
+  });
 });
 
 describe("evaluate - error handling", () => {
