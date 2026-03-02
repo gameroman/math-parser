@@ -55,7 +55,7 @@ function isAlpha(ch?: string): ch is string {
   return ch >= "a" && ch <= "z";
 }
 
-export interface LexerOptions {
+interface LexerOptions {
   decimalSeparator?: "." | ",";
 }
 

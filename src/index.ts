@@ -1,15 +1,11 @@
 import { evaluate, type Value } from "./lib/interpreter";
-import { tokenize, type LexerOptions } from "./lib/lexer";
+import { tokenize } from "./lib/lexer";
 import { parse } from "./lib/parser";
 
-// Use a Discriminated Union for type-safe options
-export type FormatOptions =
-  | {
-      format?: "decimal";
-      /** Maximum decimal places. Defaults to 20. */
-      maxDecimals?: number;
-    }
-  | { format: "precise" };
+interface FormatOptions {
+  format?: "decimal" | "precise";
+  maxDecimals?: number;
+}
 
 const getConstantStr = (coeff: string, c?: Value["c"]) => {
   if (!c) return coeff;
@@ -26,13 +22,11 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
 
   if (d === 0n) return "NaN";
 
-  // --- Fraction Format Logic ---
   if (options.format === "precise") {
     if (d === 1n) return getConstantStr(n.toString(), c);
     return `${getConstantStr(n.toString(), c)}/${d}`;
   }
 
-  // --- Decimal Format Logic ---
   const maxDecimals = options.maxDecimals ?? 30;
 
   const isNegative = n < 0n;
@@ -49,7 +43,6 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
   let fractionalPart = "";
   let count = 0;
 
-  // Long division simulation
   while (remainder !== 0n && count < maxDecimals) {
     remainder *= 10n;
     fractionalPart += (remainder / d).toString();
@@ -57,7 +50,6 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
     count++;
   }
 
-  // Trim trailing zeros
   let lastNonZero = -1;
   for (let i = fractionalPart.length - 1; i >= 0; i--) {
     if (fractionalPart[i] !== "0") {
@@ -75,7 +67,11 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
   return sign + result;
 }
 
-type CalculateOptions = FormatOptions & LexerOptions;
+interface CalculateOptions {
+  format?: "decimal" | "precise";
+  maxDecimals?: number;
+  decimalSeparator?: "." | ",";
+}
 
 /**
  * The main entry point for the library.

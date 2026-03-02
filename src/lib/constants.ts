@@ -1,4 +1,4 @@
-const PI = "3.14";
-const E = "2.718";
+const PI = Math.PI.toString();
+const E = Math.E.toString();
 
 export { PI, E };
