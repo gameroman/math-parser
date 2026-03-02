@@ -233,6 +233,10 @@ export function evaluate(tokens: ParsedToken[]): Value {
         }
         break;
       }
+      case "CONST": {
+        values.push({ n: 1n, d: 1n, c: token.id });
+        break;
+      }
       case "LPAREN": {
         ops.push("LPAREN");
         break;
