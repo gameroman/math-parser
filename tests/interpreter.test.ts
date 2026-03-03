@@ -271,6 +271,10 @@ describe("evaluate", () => {
     expect(calculate("e + e", { format: "precise" })).toBe("2e");
     expect(calculate("2pi + 3pi", { format: "precise" })).toBe("5pi");
     expect(calculate("2e + 3e", { format: "precise" })).toBe("5e");
+    expect(calculate("pi + 0", { format: "precise" })).toBe("pi");
+    expect(calculate("0 + pi", { format: "precise" })).toBe("pi");
+    expect(calculate("e + 0", { format: "precise" })).toBe("e");
+    expect(calculate("0 + e", { format: "precise" })).toBe("e");
   });
 
   it("should handle subtraction of constants", () => {
@@ -278,6 +282,10 @@ describe("evaluate", () => {
     expect(calculate("5e - 3e", { format: "precise" })).toBe("2e");
     expect(calculate("pi - pi", { format: "precise" })).toBe("0");
     expect(calculate("e - e", { format: "precise" })).toBe("0");
+    expect(calculate("pi - 0", { format: "precise" })).toBe("pi");
+    expect(calculate("0 - pi", { format: "precise" })).toBe("-pi");
+    expect(calculate("e - 0", { format: "precise" })).toBe("e");
+    expect(calculate("0 - e", { format: "precise" })).toBe("-e");
   });
 
   it("should handle subtraction and addition of constants", () => {
