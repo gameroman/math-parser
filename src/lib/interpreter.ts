@@ -21,8 +21,8 @@ const precedence = {
   UNARY_PLUS: 4,
   UNARY_MINUS: 4,
   EXP: 6,
-  IMPLICIT_MUL: 8,
-  ABS_FN: 9,
+  IMPLICIT_MUL: 6,
+  ABS_FN: 8,
   FACTORIAL: 10,
 } as const;
 
@@ -242,7 +242,9 @@ export function evaluate(
 
   const pushOpWithPrecedence = (currentOp: StackOp, pos: number) => {
     const isUnary = isUnaryOperation(currentOp);
-    const isRightAssociative = currentOp === "EXP";
+
+    const isRightAssociative =
+      currentOp === "EXP" || currentOp === "IMPLICIT_MUL";
 
     while (
       ops.length > 0 &&

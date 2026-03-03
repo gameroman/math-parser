@@ -91,10 +91,18 @@ describe("evaluate", () => {
     expect(calculate("8 - 2(1 + 2)")).toBe("2");
   });
 
-  it("should have have higher precedence for implicit multiplication", () => {
+  it("should have have higher precedence for implicit multiplication than division", () => {
     expect(calculate("6 / 2(1 + 2)")).toBe("1");
+  });
+
+  it("should have have higher precedence for implicit multiplication than exponentiation", () => {
     expect(calculate("2 ^ 3(1+2)")).toBe("512");
-    expect(calculate("2(1+2) ^ 3")).toBe("216");
+    expect(calculate("2 ^ 2(2)")).toBe("16");
+  });
+
+  it("should have have higher precedence for exponentiation than implicit multiplication", () => {
+    expect(calculate("2(1+2)^3")).toBe("54");
+    expect(calculate("2(2)^2")).toBe("8");
   });
 
   it("should correctly handle a decimal", () => {
