@@ -135,6 +135,18 @@ export function evaluate(
       case "ADD":
       case "SUBTRACT": {
         const isSub = op === "SUBTRACT";
+        if (lN === 0n) {
+          resN = isSub ? -rN : rN;
+          resD = rD;
+          resC = rC;
+          break;
+        }
+        if (rN === 0n) {
+          resN = lN;
+          resD = lD;
+          resC = lC;
+          break;
+        }
         if (lD === rD) {
           resN = isSub ? lN - rN : lN + rN;
           resD = lD;
