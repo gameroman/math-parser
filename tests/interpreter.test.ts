@@ -234,6 +234,10 @@ describe("evaluate", () => {
     expect(calculate("e", { format: "precise" })).toBe("e");
     expect(calculate("3pi", { format: "precise" })).toBe("3pi");
     expect(calculate("3e", { format: "precise" })).toBe("3e");
+    expect(calculate("+pi", { format: "precise" })).toBe("pi");
+    expect(calculate("+e", { format: "precise" })).toBe("e");
+    expect(calculate("-pi", { format: "precise" })).toBe("-pi");
+    expect(calculate("-e", { format: "precise" })).toBe("-e");
   });
 
   it("should handle a constant in non-precise mode", () => {
