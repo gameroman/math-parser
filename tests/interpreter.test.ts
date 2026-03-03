@@ -286,8 +286,8 @@ describe("evaluate", () => {
   });
 
   it("should handle multiplication and addition of constants", () => {
-    expect(calculate("pi - pi + e", { format: "precise" })).toBe("e");
-    expect(calculate("e - e + pi", { format: "precise" })).toBe("pi");
+    expect(calculate("0pi + e", { format: "precise" })).toBe("e");
+    expect(calculate("0e + pi", { format: "precise" })).toBe("pi");
   });
 
   it("should handle multiplication of constants", () => {
