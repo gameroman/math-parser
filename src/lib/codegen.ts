@@ -49,8 +49,7 @@ export function serialize(tokens: Token[]): string {
         segment = "|";
         break;
       }
-      case "FUNC":
-      case "CONST": {
+      case "IDENTIFIER": {
         segment = token.id;
         break;
       }

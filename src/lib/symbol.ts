@@ -17,7 +17,10 @@ const symbolMap = {
   ABS_OPEN: "|",
   PIPE: "|",
 } satisfies Record<
-  Exclude<(Token | ParsedToken)["type"], "NUMBER" | "FUNC" | "CONST">,
+  Exclude<
+    (Token | ParsedToken)["type"],
+    "NUMBER" | "FUNC" | "CONST" | "IDENTIFIER"
+  >,
   string
 >;
 
@@ -25,9 +28,9 @@ export const prettifyNumber = (t: TokenNumber) =>
   t.fraction ? `${t.whole}.${t.fraction}` : t.whole;
 
 export function getSym(
-  t: Exclude<ParsedToken | Token, { type: "FUNC" }>,
+  t: Exclude<ParsedToken | Token, { type: "FUNC" | "CONST" }>,
 ): string {
   if (t.type === "NUMBER") return prettifyNumber(t);
-  if (t.type === "CONST") return t.id;
+  if (t.type === "IDENTIFIER") return t.id;
   return symbolMap[t.type];
 }

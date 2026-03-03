@@ -1,12 +1,22 @@
 import { IncompleteExpressionError, ParserError } from "./errors";
-import type { Token, TokenBase } from "./lexer";
+import type { Token, TokenBase, TokenIdentifier } from "./lexer";
 import { getSym } from "./symbol";
 
-export interface UnaryToken extends TokenBase {
+interface TokenFn extends TokenBase {
+  type: "FUNC";
+  id: string;
+}
+
+interface TokenConst extends TokenBase {
+  type: "CONST";
+  id: "pi" | "e";
+}
+
+interface UnaryToken extends TokenBase {
   type: "UNARY_PLUS" | "UNARY_MINUS";
 }
 
-export interface ImplicitMulToken extends TokenBase {
+interface ImplicitMulToken extends TokenBase {
   type: "IMPLICIT_MUL";
 }
 
@@ -15,7 +25,9 @@ interface AbsToken extends TokenBase {
 }
 
 export type ParsedToken =
-  | Exclude<Token, { type: "PIPE" }>
+  | Exclude<Token, { type: "PIPE" | "IDENTIFIER" }>
+  | TokenFn
+  | TokenConst
   | UnaryToken
   | ImplicitMulToken
   | AbsToken;
@@ -43,6 +55,16 @@ function isUnaryContext(last?: ParsedToken) {
   return !isOperand(last);
 }
 
+function resolveIdentifier(token: TokenIdentifier): TokenConst | TokenFn {
+  if (token.id === "pi" || token.id === "e") {
+    return { type: "CONST", id: token.id as "pi" | "e", pos: token.pos };
+  }
+  if (token.id === "abs") {
+    return { type: "FUNC", id: "abs", pos: token.pos };
+  }
+  throw new ParserError(`Unknown identifier '${token.id}'`, token.pos);
+}
+
 export function parse(tokens: Token[]): ParsedToken[] {
   if (tokens.length === 0) return [];
 
@@ -50,8 +72,13 @@ export function parse(tokens: Token[]): ParsedToken[] {
   let absStack = 0;
 
   for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]!;
+    let token: Token | ParsedToken = tokens[i]!;
     const prev = tokens[i - 1];
+
+    if (token.type === "IDENTIFIER") {
+      token = resolveIdentifier(token);
+    }
+
     let prevParsed = result[result.length - 1];
 
     // --- Handle Pipes ---
@@ -71,8 +98,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
       continue;
     }
 
-    // --- Iplicit Multiplication ---
-    if (isOperand(result[result.length - 1])) {
+    if (isOperand(prevParsed)) {
       const needsImplicit =
         token.type === "LPAREN" ||
         token.type === "FUNC" ||
@@ -116,18 +142,19 @@ export function parse(tokens: Token[]): ParsedToken[] {
           token.pos,
         );
       }
+      if (prevParsed?.type === "LPAREN") {
+        throw new ParserError("Unexpected ')' after '('", token.pos);
+      }
     }
 
     if (
       prev &&
-      (prev.type === "NUMBER" || prev.type === "CONST") &&
+      (prev.type === "NUMBER" ||
+        (prev.type === "IDENTIFIER" &&
+          resolveIdentifier(prev).type === "CONST")) &&
       token.type === "NUMBER"
     ) {
       throw new ParserError("Missing operator between numbers", token.pos);
-    }
-
-    if (token.type === "RPAREN" && prevParsed?.type === "LPAREN") {
-      throw new ParserError("Unexpected ')' after '('", token.pos);
     }
 
     // --- Unary Identification ---
@@ -165,17 +192,9 @@ export function parse(tokens: Token[]): ParsedToken[] {
     "ABS_OPEN",
   ];
 
-  if (last && trailingOperators.includes(last.type)) {
-    if (last.type === "FUNC") {
-      throw new IncompleteExpressionError(
-        `trailing function '${last}'`,
-        last.pos,
-      );
-    }
-    throw new IncompleteExpressionError(
-      `trailing operator '${getSym(last)}'`,
-      last.pos,
-    );
+  if (last && last.type !== "CONST" && trailingOperators.includes(last.type)) {
+    const sym = last.type === "FUNC" ? last.id : getSym(last);
+    throw new IncompleteExpressionError(`trailing operator '${sym}'`, last.pos);
   }
 
   return result;
