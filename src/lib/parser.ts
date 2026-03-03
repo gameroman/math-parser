@@ -57,10 +57,10 @@ function isUnaryContext(last?: ParsedToken) {
 
 function resolveIdentifier(token: TokenIdentifier): TokenConst | TokenFn {
   if (token.id === "pi" || token.id === "e") {
-    return { type: "CONST", id: token.id as "pi" | "e", pos: token.pos };
+    return { type: "CONST", id: token.id, pos: token.pos };
   }
   if (token.id === "abs") {
-    return { type: "FUNC", id: "abs", pos: token.pos };
+    return { type: "FUNC", id: token.id, pos: token.pos };
   }
   throw new ParserError(`Unknown identifier '${token.id}'`, token.pos);
 }
