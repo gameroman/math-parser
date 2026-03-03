@@ -1,6 +1,7 @@
-import { evaluate, type Value } from "./lib/interpreter";
+import { evaluate } from "./lib/interpreter";
 import { tokenize } from "./lib/lexer";
 import { parse } from "./lib/parser";
+import type { Value } from "./lib/utils/types";
 
 interface FormatOptions {
   format?: "decimal" | "precise";
