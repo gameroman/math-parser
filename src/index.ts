@@ -9,6 +9,7 @@ interface FormatOptions {
 
 const getConstantStr = (coeff: string, c?: Value["c"]) => {
   if (!c) return coeff;
+  if (coeff === "0") return "0";
   if (coeff === "1") return c;
   if (coeff === "-1") return `-${c}`;
   return `${coeff}${c}`;

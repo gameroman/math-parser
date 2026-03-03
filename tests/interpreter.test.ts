@@ -265,6 +265,13 @@ describe("evaluate", () => {
     expect(calculate("2e + 3e", { format: "precise" })).toBe("5e");
   });
 
+  it("should handle subtraction of constants", () => {
+    expect(calculate("2pi - pi", { format: "precise" })).toBe("pi");
+    expect(calculate("5e - 3e", { format: "precise" })).toBe("2e");
+    expect(calculate("pi - pi", { format: "precise" })).toBe("0");
+    expect(calculate("e - e", { format: "precise" })).toBe("0");
+  });
+
   it("should handle multiplication of constants", () => {
     expect(calculate("2 * pi", { format: "precise" })).toBe("2pi");
     expect(calculate("2 * e", { format: "precise" })).toBe("2e");
