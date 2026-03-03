@@ -196,6 +196,9 @@ export function evaluate(
         const g2 = gcd(rD, lD);
         resN = (lN / g1) * (rD / g2);
         resD = (lD / g2) * (rN / g1);
+        if (lC !== undefined && rC === undefined) {
+          resC = lC;
+        }
         break;
       }
       case "EXP": {
