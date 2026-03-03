@@ -158,6 +158,11 @@ export function evaluate(
       }
       case "MULTIPLY":
       case "IMPLICIT_MUL": {
+        if (lN === 0n || rN === 0n) {
+          resN = 0n;
+          resD = 1n;
+          break;
+        }
         if (lD === 1n && rD === 1n) {
           resN = lN * rN;
           resD = 1n;

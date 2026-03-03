@@ -238,6 +238,8 @@ describe("evaluate", () => {
     expect(calculate("+e", { format: "precise" })).toBe("e");
     expect(calculate("-pi", { format: "precise" })).toBe("-pi");
     expect(calculate("-e", { format: "precise" })).toBe("-e");
+    expect(calculate("0pi", { format: "precise" })).toBe("0");
+    expect(calculate("0e", { format: "precise" })).toBe("0");
   });
 
   it("should handle a constant in non-precise mode", () => {
@@ -268,6 +270,10 @@ describe("evaluate", () => {
     expect(calculate("2 * e", { format: "precise" })).toBe("2e");
     expect(calculate("pi * 2", { format: "precise" })).toBe("2pi");
     expect(calculate("e * 2", { format: "precise" })).toBe("2e");
+    expect(calculate("0 * pi", { format: "precise" })).toBe("0");
+    expect(calculate("0 * e", { format: "precise" })).toBe("0");
+    expect(calculate("pi * 0", { format: "precise" })).toBe("0");
+    expect(calculate("e * 0", { format: "precise" })).toBe("0");
   });
 
   it("should handle exponentiation of constants", () => {
