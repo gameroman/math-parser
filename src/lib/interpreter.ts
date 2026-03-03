@@ -96,7 +96,7 @@ export function evaluate(
       let resN = rN;
       if (op === "UNARY_MINUS") resN = -rN;
       if (op === "ABS_FN") resN = rN < 0n ? -rN : rN; // Absolute value logic
-      values.push({ n: resN, d: right.d });
+      values.push({ n: resN, d: right.d, c: right.c });
       return;
     }
 
@@ -344,7 +344,7 @@ export function evaluate(
           throw new UnexpectedEndOfExpressionError();
         }
 
-        values.push({ n: val.n < 0n ? -val.n : val.n, d: val.d });
+        values.push({ n: val.n < 0n ? -val.n : val.n, d: val.d, c: val.c });
         break;
       }
       case "PLUS": {

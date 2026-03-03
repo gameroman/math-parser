@@ -277,6 +277,13 @@ describe("evaluate", () => {
     expect(calculate("e ^ 1", { format: "precise" })).toBe("e");
   });
 
+  it("should handle a constant with pipe operator", () => {
+    expect(calculate("|pi|", { format: "precise" })).toBe("pi");
+    expect(calculate("|e|", { format: "precise" })).toBe("e");
+    expect(calculate("|-pi|", { format: "precise" })).toBe("pi");
+    expect(calculate("|-e|", { format: "precise" })).toBe("e");
+  });
+
   it("should not throw OverflowError for exponentiating decimal", () => {
     expect(() => calculate("e^2")).not.toThrow(OverflowError);
   });
