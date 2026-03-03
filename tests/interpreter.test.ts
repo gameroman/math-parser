@@ -226,6 +226,22 @@ describe("evaluate", () => {
     expect(calculate("abs(-2)")).toBe("2");
   });
 
+  it("should handle floor function", () => {
+    expect(calculate("floor(1)")).toBe("1");
+    expect(calculate("floor(1.5)")).toBe("1");
+    expect(calculate("floor(-1.5)")).toBe("-2");
+    expect(calculate("floor(pi)")).toBe("3");
+    expect(calculate("floor(e)")).toBe("2");
+  });
+
+  it("should handle ceil function", () => {
+    expect(calculate("ceil(1)")).toBe("1");
+    expect(calculate("ceil(1.5)")).toBe("2");
+    expect(calculate("ceil(-1.5)")).toBe("-1");
+    expect(calculate("ceil(pi)")).toBe("4");
+    expect(calculate("ceil(e)")).toBe("3");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
