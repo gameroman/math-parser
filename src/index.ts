@@ -1,36 +1,34 @@
-import { evaluate, type HighPrecision } from "./lib/interpreter";
+import { evaluate, type Value } from "./lib/interpreter";
 import { tokenize } from "./lib/lexer";
 import { parse } from "./lib/parser";
 
-// Use a Discriminated Union for type-safe options
-export type FormatOptions =
-  | {
-      format?: "decimal";
-      /** Maximum decimal places. Defaults to 20. */
-      maxDecimals?: number;
-    }
-  | { format: "precise" };
+interface FormatOptions {
+  format?: "decimal" | "precise";
+  maxDecimals?: number;
+}
+
+const getConstantStr = (coeff: string, c?: Value["c"]) => {
+  if (!c) return coeff;
+  if (coeff === "0") return "0";
+  if (coeff === "1") return c;
+  if (coeff === "-1") return `-${c}`;
+  return `${coeff}${c}`;
+};
 
 /**
- * Converts Rational Fraction (n/d) to a Decimal or Fraction String.
+ * Converts Result to a Decimal or Fraction String.
  */
-export function formatResult(
-  hp: HighPrecision,
-  options: FormatOptions = {},
-): string {
-  const { n, d } = hp;
+export function formatResult(v: Value, options: FormatOptions = {}): string {
+  const { n, d, c } = v;
 
   if (d === 0n) return "NaN";
 
-  // --- Fraction Format Logic ---
   if (options.format === "precise") {
-    if (d === 1n) return n.toString();
-    return `${n}/${d}`;
+    if (d === 1n) return getConstantStr(n.toString(), c);
+    return `${getConstantStr(n.toString(), c)}/${d}`;
   }
 
-  // --- Decimal Format Logic ---
-  const maxDecimals =
-    options.format === "decimal" ? (options.maxDecimals ?? 20) : 20;
+  const maxDecimals = options.maxDecimals ?? 30;
 
   const isNegative = n < 0n;
   const absN = n < 0n ? -n : n;
@@ -46,7 +44,6 @@ export function formatResult(
   let fractionalPart = "";
   let count = 0;
 
-  // Long division simulation
   while (remainder !== 0n && count < maxDecimals) {
     remainder *= 10n;
     fractionalPart += (remainder / d).toString();
@@ -54,7 +51,6 @@ export function formatResult(
     count++;
   }
 
-  // Trim trailing zeros
   let lastNonZero = -1;
   for (let i = fractionalPart.length - 1; i >= 0; i--) {
     if (fractionalPart[i] !== "0") {
@@ -72,15 +68,21 @@ export function formatResult(
   return sign + result;
 }
 
+interface CalculateOptions {
+  format?: "decimal" | "precise";
+  maxDecimals?: number;
+  decimalSeparator?: "." | ",";
+}
+
 /**
  * The main entry point for the library.
  */
 export function calculate(
   expression: string,
-  options: FormatOptions = {},
+  options?: CalculateOptions,
 ): string {
-  const tokens = tokenize(expression);
+  const tokens = tokenize(expression, options);
   const transformed = parse(tokens);
-  const result = evaluate(transformed);
+  const result = evaluate(transformed, options);
   return formatResult(result, options);
 }

@@ -1,5 +1,4 @@
 import type { Token } from "./lexer";
-
 import { prettifyNumber } from "./symbol";
 
 /**
@@ -50,7 +49,8 @@ export function serialize(tokens: Token[]): string {
         segment = "|";
         break;
       }
-      case "FUNC": {
+      case "FUNC":
+      case "CONST": {
         segment = token.id;
         break;
       }
