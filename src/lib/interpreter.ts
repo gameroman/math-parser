@@ -151,7 +151,7 @@ export function evaluate(
             resD = lD * mLeft;
           }
         }
-        if (lC === rC) {
+        if (lC === rC && resN !== 0n) {
           resC = lC;
         }
         break;
