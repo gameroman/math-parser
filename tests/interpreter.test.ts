@@ -194,6 +194,7 @@ describe("evaluate", () => {
   it("should handle a simple remainder division", () => {
     expect(calculate("5 % 3")).toBe("2");
     expect(calculate("10 % 3")).toBe("1");
+    expect(calculate("-25 % 7")).toBe("3");
   });
 
   it("should handle scientific notation", () => {
