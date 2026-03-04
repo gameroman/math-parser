@@ -68,8 +68,9 @@ const MAX_PRECISION = 50_000;
  */
 const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
-interface PrecisionOptions {
+export interface PrecisionOptions {
   format?: "decimal" | "precise";
+  maxDecimals?: number;
 }
 
 export function evaluate(
@@ -118,7 +119,7 @@ export function evaluate(
           return;
         }
         case "SQRT_FN": {
-          values.push(sqrt(right));
+          values.push(sqrt(right, format === "precise"));
           return;
         }
       }
@@ -258,7 +259,10 @@ export function evaluate(
           const basePowerN = lN ** exponent;
           const basePowerD = lD ** exponent;
 
-          const rootResult = sqrt({ n: basePowerN, d: basePowerD });
+          const rootResult = sqrt(
+            { n: basePowerN, d: basePowerD },
+            format === "precise",
+          );
 
           resN = rootResult.n;
           resD = rootResult.d;

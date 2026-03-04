@@ -26,12 +26,31 @@ function isqrt(value: bigint): bigint {
   return res;
 }
 
-export function sqrt(v: Value, precisionDigits: number = 100): Value {
+function isPerfectSquare(val: bigint): [boolean, bigint] {
+  if (val < 0n) return [false, 0n];
+  const root = isqrt(val);
+  return [root * root === val, root];
+}
+
+export function sqrt(
+  v: Value,
+  precise: boolean = false,
+  precisionDigits: number = 100,
+): Value {
   if (v.n < 0n) {
     throw new InterpreterError("Square root of negative not supported yet.");
   }
 
   if (v.n === 0n) return { n: 0n, d: 1n };
+
+  if (precise) {
+    const [nIsSquare, nRoot] = isPerfectSquare(v.n);
+    const [dIsSquare, dRoot] = isPerfectSquare(v.d);
+
+    if (nIsSquare && dIsSquare) {
+      return simplify({ n: nRoot, d: dRoot });
+    }
+  }
 
   // To get 'p' digits of precision in a fraction, we multiply the
   // numerator by 10^(2*p) before taking the integer sqrt.

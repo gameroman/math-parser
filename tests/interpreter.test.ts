@@ -286,6 +286,13 @@ describe("evaluate", () => {
     expect(calculate("16 ^ (1/2)")).toBe("4");
   });
 
+  it("should handle square root of a fraction", () => {
+    expect(calculate("sqrt(4/9)", { format: "precise" })).toBe("2/3");
+    expect(calculate("sqrt(9/4)", { format: "precise" })).toBe("3/2");
+    expect(calculate("(4/9) ^ (1/2)", { format: "precise" })).toBe("2/3");
+    expect(calculate("(9/4) ^ (1/2)", { format: "precise" })).toBe("3/2");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
