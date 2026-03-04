@@ -197,6 +197,10 @@ describe("evaluate", () => {
     expect(calculate("-25 % 7")).toBe("3");
   });
 
+  it("should handle a remainder division with decimals", () => {
+    expect(calculate("2.5 % 2")).toBe("0.5");
+  });
+
   it("should handle scientific notation", () => {
     expect(calculate("1e2")).toBe("100");
     expect(calculate("1e-2")).toBe("0.01");
