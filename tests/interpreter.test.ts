@@ -96,7 +96,7 @@ describe("evaluate", () => {
     expect(calculate("6 / 2(1 + 2)")).toBe("1");
   });
 
-  it("should throw InterpreterError for division by 0", () => {
+  it("should throw DivisionByZeroError for division by 0", () => {
     expect(() => calculate("1/0")).toThrow(DivisionByZeroError);
   });
 
@@ -196,6 +196,18 @@ describe("evaluate", () => {
     expect(calculate("(-1)^(-1)^-1")).toBe("-1");
   });
 
+  it("should throw DivisionByZeroError for exponentiation of 0 to negative power", () => {
+    expect(() => calculate("0 ^ -1")).toThrow(DivisionByZeroError);
+  });
+
+  it("should handle exponentiation of 0", () => {
+    expect(calculate("0^0")).toBe("1");
+    expect(calculate("0^1")).toBe("0");
+    expect(calculate("0^0.5")).toBe("0");
+    expect(calculate("0^(1/3)")).toBe("0");
+    expect(calculate("0^(2/3)")).toBe("0");
+  });
+
   it("should handle a simple remainder division", () => {
     expect(calculate("5 % 3")).toBe("2");
     expect(calculate("10 % 3")).toBe("1");
@@ -266,6 +278,12 @@ describe("evaluate", () => {
     expect(calculate("sqrt(0)")).toBe("0");
     expect(calculate("sqrt(1)")).toBe("1");
     expect(calculate("sqrt(16)")).toBe("4");
+  });
+
+  it("should handle square root when using exponentiation", () => {
+    expect(calculate("0 ^ (1/2)")).toBe("0");
+    expect(calculate("1 ^ 0.5")).toBe("1");
+    expect(calculate("16 ^ (1/2)")).toBe("4");
   });
 
   it("should handle implicit multiplication with pipe operator", () => {

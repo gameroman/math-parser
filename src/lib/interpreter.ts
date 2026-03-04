@@ -237,18 +237,39 @@ export function evaluate(
       case "EXP": {
         const normalizedExponent = simplify(right);
 
-        if (normalizedExponent.d !== 1n) {
-          throw new InterpreterError(
-            `Fractional exponents ${normalizedExponent.n}/${normalizedExponent.d} are not supported yet`,
-          );
-        }
-
         let exponent = normalizedExponent.n;
 
         if (exponent === 0n) {
           resN = 1n;
           resD = 1n;
           break;
+        }
+
+        if (lN === 0n) {
+          if (rN < 0) {
+            throw new DivisionByZeroError();
+          }
+          resN = 0n;
+          resD = 1n;
+          break;
+        }
+
+        if (normalizedExponent.d === 2n) {
+          const basePowerN = lN ** exponent;
+          const basePowerD = lD ** exponent;
+
+          const rootResult = sqrt({ n: basePowerN, d: basePowerD });
+
+          resN = rootResult.n;
+          resD = rootResult.d;
+          resC = rootResult.c;
+          break;
+        }
+
+        if (normalizedExponent.d !== 1n) {
+          throw new InterpreterError(
+            `Fractional exponents ${normalizedExponent.n}/${normalizedExponent.d} are not supported yet`,
+          );
         }
 
         let baseN = lN;
