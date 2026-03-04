@@ -1,6 +1,6 @@
-import type { Value } from "./types";
-import { simplify } from "./simplify";
 import { InterpreterError } from "../errors";
+import { simplify } from "./simplify";
+import type { Value } from "./types";
 
 /**
  * Calculates the integer square root of a BigInt.
@@ -11,13 +11,19 @@ function isqrt(value: bigint): bigint {
   }
   if (value < 2n) return value;
 
-  let x = value / 2n + 1n;
-  let y = (x + value / x) / 2n;
-  while (y < x) {
-    x = y;
-    y = (x + value / x) / 2n;
+  let res = 0n;
+  let bit = 1n << BigInt((value.toString(2).length - 1) & ~1);
+
+  while (bit !== 0n) {
+    if (value >= res + bit) {
+      value -= res + bit;
+      res = (res >> 1n) + bit;
+    } else {
+      res >>= 1n;
+    }
+    bit >>= 2n;
   }
-  return x;
+  return res;
 }
 
 export function sqrt(v: Value, precisionDigits: number = 100): Value {

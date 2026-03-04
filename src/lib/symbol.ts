@@ -25,7 +25,7 @@ const symbolMap = {
   string
 >;
 
-export const prettifyNumber = (t: TokenNumber) =>
+export const prettifyNumber = (t: TokenNumber): string =>
   t.fraction ? `${t.whole}.${t.fraction}` : t.whole;
 
 export function getSym(
