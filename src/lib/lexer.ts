@@ -24,6 +24,7 @@ export type Token =
   | { type: "MUL"; pos: number }
   | { type: "DIV"; pos: number }
   | { type: "POW"; pos: number }
+  | { type: "MOD"; pos: number }
   | { type: "FACTORIAL"; pos: number }
   | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
@@ -198,6 +199,12 @@ export function tokenize(
 
     if (ch === "|") {
       tokens.push({ type: "PIPE", pos: startPos });
+      index++;
+      continue;
+    }
+
+    if (ch === "%") {
+      tokens.push({ type: "MOD", pos: startPos });
       index++;
       continue;
     }

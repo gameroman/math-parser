@@ -41,6 +41,10 @@ export function serialize(tokens: Token[]): string {
         segment = "^";
         break;
       }
+      case "MOD": {
+        segment = "%";
+        break;
+      }
       case "FACTORIAL": {
         segment = "!";
         break;

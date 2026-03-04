@@ -16,6 +16,7 @@ const symbolMap = {
   ABS_CLOSE: "|",
   ABS_OPEN: "|",
   PIPE: "|",
+  MOD: "%",
 } satisfies Record<
   Exclude<
     (Token | ParsedToken)["type"],

@@ -48,6 +48,15 @@ function isOperand(last?: ParsedToken) {
   );
 }
 
+function isBinaryOperator(token: ParsedToken) {
+  return (
+    token.type === "MUL" ||
+    token.type === "DIV" ||
+    token.type === "POW" ||
+    token.type === "MOD"
+  );
+}
+
 /**
  * Helper: Does the current context allow a +/- to be unary?
  */
@@ -113,7 +122,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
     prevParsed = result[result.length - 1];
 
     // --- Syntax Validation ---
-    if (token.type === "MUL" || token.type === "DIV" || token.type === "POW") {
+    if (isBinaryOperator(token)) {
       if (isUnaryContext(prevParsed)) {
         throw new ParserError(
           `Unexpected operator '${getSym(token)}'`,
@@ -133,9 +142,7 @@ export function parse(tokens: Token[]): ParsedToken[] {
         prevParsed &&
         (prevParsed.type === "PLUS" ||
           prevParsed.type === "MINUS" ||
-          prevParsed.type === "MUL" ||
-          prevParsed.type === "DIV" ||
-          prevParsed.type === "POW")
+          isBinaryOperator(prevParsed))
       ) {
         throw new ParserError(
           `Unexpected ')' after operator '${getSym(prevParsed)}'`,
@@ -183,16 +190,17 @@ export function parse(tokens: Token[]): ParsedToken[] {
   const trailingOperators: TokenType[] = [
     "PLUS",
     "MINUS",
-    "MUL",
-    "DIV",
-    "POW",
     "UNARY_PLUS",
     "UNARY_MINUS",
     "FUNC",
     "ABS_OPEN",
   ];
 
-  if (last && last.type !== "CONST" && trailingOperators.includes(last.type)) {
+  if (
+    last &&
+    last.type !== "CONST" &&
+    (isBinaryOperator(last) || trailingOperators.includes(last.type))
+  ) {
     const sym = last.type === "FUNC" ? last.id : getSym(last);
     throw new IncompleteExpressionError(`trailing operator '${sym}'`, last.pos);
   }
