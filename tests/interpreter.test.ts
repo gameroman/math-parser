@@ -191,6 +191,11 @@ describe("evaluate", () => {
     expect(calculate("(-1)^(-1)^-1")).toBe("-1");
   });
 
+  it("should handle a simple remainder division", () => {
+    expect(calculate("5 % 3")).toBe("2");
+    expect(calculate("10 % 3")).toBe("1");
+  });
+
   it("should handle scientific notation", () => {
     expect(calculate("1e2")).toBe("100");
     expect(calculate("1e-2")).toBe("0.01");
