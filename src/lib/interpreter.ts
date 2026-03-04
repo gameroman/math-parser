@@ -7,6 +7,7 @@ import {
   EmptyExpressionError,
   MaximumPrecisionError,
   OverflowError,
+  DivisionByZeroError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
 import { ceil } from "./utils/ceil";
@@ -210,6 +211,9 @@ export function evaluate(
         break;
       }
       case "MOD": {
+        if (rN === 0n) {
+          throw new DivisionByZeroError();
+        }
         const { n, d } = mod({ n: lN, d: lD }, { n: rN, d: rD });
         resN = n;
         resD = d;

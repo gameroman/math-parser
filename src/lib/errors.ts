@@ -37,6 +37,12 @@ export class OverflowError extends InterpreterError {
   }
 }
 
+export class DivisionByZeroError extends InterpreterError {
+  constructor() {
+    super("Division by zero");
+  }
+}
+
 export class EmptyExpressionError extends InterpreterError {
   constructor() {
     super("Empty expression");

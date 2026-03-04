@@ -3,6 +3,7 @@ import { describe, it, expect } from "bun:test";
 import { calculate } from "../src";
 import { E, PI } from "../src/lib/constants";
 import {
+  DivisionByZeroError,
   EmptyExpressionError,
   MaximumPrecisionError,
   MismatchedParenthesisError,
@@ -93,6 +94,10 @@ describe("evaluate", () => {
 
   it("should have have higher precedence for implicit multiplication than division", () => {
     expect(calculate("6 / 2(1 + 2)")).toBe("1");
+  });
+
+  it("should throw InterpreterError for division by 0", () => {
+    expect(() => calculate("1/0")).toThrow(DivisionByZeroError);
   });
 
   it("should have have higher precedence for implicit multiplication than exponentiation", () => {
@@ -195,10 +200,15 @@ describe("evaluate", () => {
     expect(calculate("5 % 3")).toBe("2");
     expect(calculate("10 % 3")).toBe("1");
     expect(calculate("-25 % 7")).toBe("3");
+    expect(calculate("-25 % -7")).toBe("-4");
   });
 
   it("should handle a remainder division with decimals", () => {
     expect(calculate("2.5 % 2")).toBe("0.5");
+  });
+
+  it("should throw DivisionByZeroError for remainder division by 0", () => {
+    expect(() => calculate("1 % 0")).toThrow(DivisionByZeroError);
   });
 
   it("should handle scientific notation", () => {
