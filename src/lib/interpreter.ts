@@ -281,7 +281,7 @@ export function evaluate(
           break;
         }
 
-        const c = getConst(lC.id);
+        const c = getConst(lC);
 
         resN = (baseN * c.n) ** exponent;
         resD = (baseD * c.d) ** exponent;
