@@ -120,7 +120,13 @@ export function evaluate(
           return;
         }
         case "SQRT_FN": {
-          values.push(sqrt(right, format === "precise"));
+          if (right.c === undefined) {
+            values.push(sqrt(right, format === "precise"));
+            return;
+          }
+          const c = getConst(right.c);
+          const v = multiply(right, c);
+          values.push(sqrt(v, format === "precise"));
           return;
         }
       }
