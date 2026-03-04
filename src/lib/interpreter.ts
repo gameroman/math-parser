@@ -13,6 +13,7 @@ import { ceil } from "./utils/ceil";
 import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
+import { mod } from "./utils/mod";
 import { simplify } from "./utils/simplify";
 import type { Value } from "./utils/types";
 
@@ -23,6 +24,7 @@ const precedence = {
   SUBTRACT: 1,
   MULTIPLY: 2,
   DIVIDE: 2,
+  MOD: 2,
   UNARY_PLUS: 4,
   UNARY_MINUS: 4,
   EXP: 6,
@@ -205,6 +207,12 @@ export function evaluate(
         if (lC !== undefined && rC === undefined) {
           resC = lC;
         }
+        break;
+      }
+      case "MOD": {
+        const { n, d } = mod({ n: lN, d: lD }, { n: rN, d: rD });
+        resN = n;
+        resD = d;
         break;
       }
       case "EXP": {
@@ -409,6 +417,10 @@ export function evaluate(
       }
       case "FACTORIAL": {
         pushOpWithPrecedence("FACTORIAL", token.pos);
+        break;
+      }
+      case "MOD": {
+        pushOpWithPrecedence("MOD", token.pos);
         break;
       }
       case "FUNC": {
