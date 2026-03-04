@@ -243,20 +243,21 @@ export function evaluate(
           );
         }
 
-        // Handling negative exponents: flip the fraction and make exponent positive
         let exponent = normalizedExponent.n;
-        let baseN = lN;
-        let baseD = lD;
-
-        if (exponent < 0n) {
-          [baseN, baseD] = [baseD, baseN];
-          exponent = -exponent;
-        }
 
         if (exponent === 0n) {
           resN = 1n;
           resD = 1n;
           break;
+        }
+
+        let baseN = lN;
+        let baseD = lD;
+
+        // Handling negative exponents: flip the fraction and make exponent positive
+        if (exponent < 0n) {
+          [baseN, baseD] = [baseD, baseN];
+          exponent = -exponent;
         }
 
         if (exponent === 1n) {
@@ -274,9 +275,16 @@ export function evaluate(
         ) {
           throw new OverflowError();
         }
+        if (!lC) {
+          resN = baseN ** exponent;
+          resD = baseD ** exponent;
+          break;
+        }
 
-        resN = baseN ** exponent;
-        resD = baseD ** exponent;
+        const c = getConst(lC.id);
+
+        resN = (baseN * c.n) ** exponent;
+        resD = (baseD * c.d) ** exponent;
         break;
       }
     }
