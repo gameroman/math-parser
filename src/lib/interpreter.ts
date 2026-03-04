@@ -15,6 +15,7 @@ import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
+import { multiply } from "./utils/multiply";
 import { simplify } from "./utils/simplify";
 import { sqrt } from "./utils/sqrt";
 import type { Value } from "./utils/types";
@@ -195,25 +196,10 @@ export function evaluate(
       }
       case "MULTIPLY":
       case "IMPLICIT_MUL": {
-        if (lN === 0n || rN === 0n) {
-          resN = 0n;
-          resD = 1n;
-          break;
-        }
-        if (lD === 1n && rD === 1n) {
-          resN = lN * rN;
-          resD = 1n;
-        } else {
-          const g1 = gcd(lN, rD);
-          const g2 = gcd(rN, lD);
-          resN = (lN / g1) * (rN / g2);
-          resD = (lD / g2) * (rD / g1);
-        }
-        if (lC === undefined && rC !== undefined) {
-          resC = rC;
-        } else if (lC !== undefined && rC === undefined) {
-          resC = lC;
-        }
+        const result = multiply(left, right);
+        resN = result.n;
+        resD = result.d;
+        resC = result.c;
         break;
       }
       case "DIVIDE": {
