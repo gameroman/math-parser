@@ -15,7 +15,9 @@ import { factorial } from "./utils/factorial";
 import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
+import { multiply } from "./utils/multiply";
 import { simplify } from "./utils/simplify";
+import { sqrt } from "./utils/sqrt";
 import type { Value } from "./utils/types";
 
 const precedence = {
@@ -33,6 +35,7 @@ const precedence = {
   ABS_FN: 8,
   CEIL_FN: 8,
   FLOOR_FN: 8,
+  SQRT_FN: 8,
   FACTORIAL: 10,
 } as const;
 
@@ -44,8 +47,17 @@ function isUnaryOperation(op: StackOp) {
     op === "UNARY_MINUS" ||
     op === "ABS_FN" ||
     op === "CEIL_FN" ||
-    op === "FLOOR_FN"
+    op === "FLOOR_FN" ||
+    op === "SQRT_FN"
   );
+}
+
+function getConst(id: NonNullable<Value["c"]>): Value {
+  const c = constants[id];
+  return {
+    n: BigInt(c.replace(".", "")),
+    d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
+  };
 }
 
 /**
@@ -57,8 +69,9 @@ const MAX_PRECISION = 50_000;
  */
 const SIMPLIFY_THRESHOLD = 10n ** 4000n;
 
-interface PrecisionOptions {
+export interface PrecisionOptions {
   format?: "decimal" | "precise";
+  maxDecimals?: number;
 }
 
 export function evaluate(
@@ -104,6 +117,16 @@ export function evaluate(
         }
         case "FLOOR_FN": {
           values.push({ n: floor(right), d: 1n });
+          return;
+        }
+        case "SQRT_FN": {
+          if (right.c === undefined) {
+            values.push(sqrt(right, format === "precise"));
+            return;
+          }
+          const c = getConst(right.c);
+          const v = multiply(right, c);
+          values.push(sqrt(v, format === "precise"));
           return;
         }
       }
@@ -179,25 +202,10 @@ export function evaluate(
       }
       case "MULTIPLY":
       case "IMPLICIT_MUL": {
-        if (lN === 0n || rN === 0n) {
-          resN = 0n;
-          resD = 1n;
-          break;
-        }
-        if (lD === 1n && rD === 1n) {
-          resN = lN * rN;
-          resD = 1n;
-        } else {
-          const g1 = gcd(lN, rD);
-          const g2 = gcd(rN, lD);
-          resN = (lN / g1) * (rN / g2);
-          resD = (lD / g2) * (rD / g1);
-        }
-        if (lC === undefined && rC !== undefined) {
-          resC = rC;
-        } else if (lC !== undefined && rC === undefined) {
-          resC = lC;
-        }
+        const result = multiply(left, right);
+        resN = result.n;
+        resD = result.d;
+        resC = result.c;
         break;
       }
       case "DIVIDE": {
@@ -222,26 +230,51 @@ export function evaluate(
       case "EXP": {
         const normalizedExponent = simplify(right);
 
+        let exponent = normalizedExponent.n;
+
+        if (exponent === 0n) {
+          resN = 1n;
+          resD = 1n;
+          break;
+        }
+
+        if (lN === 0n) {
+          if (rN < 0) {
+            throw new DivisionByZeroError();
+          }
+          resN = 0n;
+          resD = 1n;
+          break;
+        }
+
+        if (normalizedExponent.d === 2n) {
+          const basePowerN = lN ** exponent;
+          const basePowerD = lD ** exponent;
+
+          const rootResult = sqrt(
+            { n: basePowerN, d: basePowerD },
+            format === "precise",
+          );
+
+          resN = rootResult.n;
+          resD = rootResult.d;
+          resC = rootResult.c;
+          break;
+        }
+
         if (normalizedExponent.d !== 1n) {
           throw new InterpreterError(
             `Fractional exponents ${normalizedExponent.n}/${normalizedExponent.d} are not supported yet`,
           );
         }
 
-        // Handling negative exponents: flip the fraction and make exponent positive
-        let exponent = normalizedExponent.n;
         let baseN = lN;
         let baseD = lD;
 
+        // Handling negative exponents: flip the fraction and make exponent positive
         if (exponent < 0n) {
           [baseN, baseD] = [baseD, baseN];
           exponent = -exponent;
-        }
-
-        if (exponent === 0n) {
-          resN = 1n;
-          resD = 1n;
-          break;
         }
 
         if (exponent === 1n) {
@@ -259,9 +292,16 @@ export function evaluate(
         ) {
           throw new OverflowError();
         }
+        if (!lC) {
+          resN = baseN ** exponent;
+          resD = baseD ** exponent;
+          break;
+        }
 
-        resN = baseN ** exponent;
-        resD = baseD ** exponent;
+        const c = getConst(lC);
+
+        resN = (baseN * c.n) ** exponent;
+        resD = (baseD * c.d) ** exponent;
         break;
       }
     }
@@ -333,11 +373,7 @@ export function evaluate(
         if (format === "precise") {
           values.push({ n: 1n, d: 1n, c: token.id });
         } else {
-          const c = constants[token.id];
-          values.push({
-            n: BigInt(c.replace(".", "")),
-            d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
-          });
+          values.push(getConst(token.id));
         }
         break;
       }
@@ -439,6 +475,10 @@ export function evaluate(
           }
           case "floor": {
             pushOpWithPrecedence("FLOOR_FN", token.pos);
+            break;
+          }
+          case "sqrt": {
+            pushOpWithPrecedence("SQRT_FN", token.pos);
             break;
           }
         }

@@ -68,7 +68,12 @@ function resolveIdentifier(token: TokenIdentifier): TokenConst | TokenFn {
   if (token.id === "pi" || token.id === "e") {
     return { type: "CONST", id: token.id, pos: token.pos };
   }
-  if (token.id === "abs" || token.id === "ceil" || token.id === "floor") {
+  if (
+    token.id === "abs" ||
+    token.id === "ceil" ||
+    token.id === "floor" ||
+    token.id === "sqrt"
+  ) {
     return { type: "FUNC", id: token.id, pos: token.pos };
   }
   throw new ParserError(`Unknown identifier '${token.id}'`, token.pos);

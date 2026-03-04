@@ -1,12 +1,7 @@
-import { evaluate } from "./lib/interpreter";
+import { evaluate, type PrecisionOptions } from "./lib/interpreter";
 import { tokenize } from "./lib/lexer";
 import { parse } from "./lib/parser";
 import type { Value } from "./lib/utils/types";
-
-interface FormatOptions {
-  format?: "decimal" | "precise";
-  maxDecimals?: number;
-}
 
 const getConstantStr = (coeff: string, c?: Value["c"]) => {
   if (!c) return coeff;
@@ -19,7 +14,7 @@ const getConstantStr = (coeff: string, c?: Value["c"]) => {
 /**
  * Converts Result to a Decimal or Fraction String.
  */
-export function formatResult(v: Value, options: FormatOptions = {}): string {
+export function formatResult(v: Value, options: PrecisionOptions = {}): string {
   const { n, d, c } = v;
 
   if (d === 0n) return "NaN";
@@ -69,9 +64,7 @@ export function formatResult(v: Value, options: FormatOptions = {}): string {
   return sign + result;
 }
 
-interface CalculateOptions {
-  format?: "decimal" | "precise";
-  maxDecimals?: number;
+interface CalculateOptions extends PrecisionOptions {
   decimalSeparator?: "." | ",";
 }
 
