@@ -11,22 +11,14 @@ export interface TokenNumber extends TokenBase {
   exponent?: string;
 }
 
-interface TokenFn extends TokenBase {
-  type: "FUNC";
+export interface TokenIdentifier extends TokenBase {
+  type: "IDENTIFIER";
   id: string;
-}
-
-interface TokenFnAbs extends TokenFn {
-  id: "abs";
-}
-
-export interface TokenConst extends TokenBase {
-  type: "CONST";
-  id: "pi" | "e";
 }
 
 export type Token =
   | TokenNumber
+  | TokenIdentifier
   | { type: "PLUS"; pos: number }
   | { type: "MINUS"; pos: number }
   | { type: "MUL"; pos: number }
@@ -35,9 +27,7 @@ export type Token =
   | { type: "FACTORIAL"; pos: number }
   | { type: "PIPE"; pos: number }
   | { type: "LPAREN"; pos: number }
-  | { type: "RPAREN"; pos: number }
-  | TokenConst
-  | TokenFnAbs;
+  | { type: "RPAREN"; pos: number };
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
@@ -50,7 +40,7 @@ function isDigit(ch?: string): ch is Digit {
   return ch >= "0" && ch <= "9";
 }
 
-function isAlpha(ch?: string): ch is string {
+function isAlpha(ch?: string): boolean {
   if (ch === undefined) return false;
   return ch >= "a" && ch <= "z";
 }
@@ -152,21 +142,10 @@ export function tokenize(
     if (isAlpha(ch)) {
       let id = "";
       while (index < length && isAlpha(expression[index])) {
-        id += expression[index];
-        index++;
+        id += expression[index++];
       }
-
-      if (id === "abs") {
-        tokens.push({ type: "FUNC", id, pos: startPos });
-        continue;
-      }
-
-      if (id === "pi" || id === "e") {
-        tokens.push({ type: "CONST", id, pos: startPos });
-        continue;
-      }
-
-      throw new LexerError(`Unknown identifier '${id}'`, startPos);
+      tokens.push({ type: "IDENTIFIER", id, pos: startPos });
+      continue;
     }
 
     if (ch === "(") {

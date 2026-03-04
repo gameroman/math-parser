@@ -1,3 +1,4 @@
+import { constants } from "./constants";
 import {
   UnexpectedEndOfExpressionError,
   MismatchedParenthesisError,
@@ -8,8 +9,12 @@ import {
   OverflowError,
 } from "./errors";
 import type { ParsedToken } from "./parser";
+import { ceil } from "./utils/ceil";
 import { factorial } from "./utils/factorial";
+import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
+import { simplify } from "./utils/simplify";
+import type { Value } from "./utils/types";
 
 const precedence = {
   LPAREN: 0,
@@ -23,38 +28,21 @@ const precedence = {
   EXP: 6,
   IMPLICIT_MUL: 6,
   ABS_FN: 8,
+  CEIL_FN: 8,
+  FLOOR_FN: 8,
   FACTORIAL: 10,
-} as const;
-
-import * as constants from "./constants";
-
-const constantsMap = {
-  e: constants.E,
-  pi: constants.PI,
 } as const;
 
 type StackOp = keyof typeof precedence;
 
-export type Value = {
-  n: bigint; // Numerator
-  d: bigint; // Denominator
-  c?: "pi" | "e";
-};
-
-/**
- * Reduces a fraction to its simplest form.
- */
-function simplify(v: Value): Value {
-  if (v.d === 0n) throw new InterpreterError("Division by zero");
-  if (v.n === 0n) return { n: 0n, d: 1n, c: v.c };
-  if (v.d === 1n) return v;
-  const common = gcd(v.n, v.d);
-  const sign = v.d < 0n ? -1n : 1n;
-  return { n: (v.n / common) * sign, d: (v.d / common) * sign, c: v.c };
-}
-
 function isUnaryOperation(op: StackOp) {
-  return op === "UNARY_PLUS" || op === "UNARY_MINUS" || op === "ABS_FN";
+  return (
+    op === "UNARY_PLUS" ||
+    op === "UNARY_MINUS" ||
+    op === "ABS_FN" ||
+    op === "CEIL_FN" ||
+    op === "FLOOR_FN"
+  );
 }
 
 /**
@@ -93,12 +81,29 @@ export function evaluate(
     }
 
     if (isUnaryOperation(op)) {
-      const rN = right.n;
-      let resN = rN;
-      if (op === "UNARY_MINUS") resN = -rN;
-      if (op === "ABS_FN") resN = rN < 0n ? -rN : rN; // Absolute value logic
-      values.push({ n: resN, d: right.d, c: right.c });
-      return;
+      switch (op) {
+        case "UNARY_PLUS": {
+          values.push(right);
+          return;
+        }
+        case "UNARY_MINUS": {
+          values.push({ n: -right.n, d: right.d, c: right.c });
+          return;
+        }
+        case "ABS_FN": {
+          const rN = right.n;
+          values.push({ n: rN < 0n ? -rN : rN, d: right.d, c: right.c });
+          return;
+        }
+        case "CEIL_FN": {
+          values.push({ n: ceil(right), d: 1n });
+          return;
+        }
+        case "FLOOR_FN": {
+          values.push({ n: floor(right), d: 1n });
+          return;
+        }
+      }
     }
 
     if (op === "FACTORIAL") {
@@ -316,7 +321,7 @@ export function evaluate(
         if (format === "precise") {
           values.push({ n: 1n, d: 1n, c: token.id });
         } else {
-          const c = constantsMap[token.id];
+          const c = constants[token.id];
           values.push({
             n: BigInt(c.replace(".", "")),
             d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
@@ -410,6 +415,14 @@ export function evaluate(
         switch (token.id) {
           case "abs": {
             pushOpWithPrecedence("ABS_FN", token.pos);
+            break;
+          }
+          case "ceil": {
+            pushOpWithPrecedence("CEIL_FN", token.pos);
+            break;
+          }
+          case "floor": {
+            pushOpWithPrecedence("FLOOR_FN", token.pos);
             break;
           }
         }

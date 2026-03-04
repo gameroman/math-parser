@@ -1,4 +1,9 @@
 const PI = Math.PI.toString();
 const E = Math.E.toString();
 
-export { PI, E };
+const constants = {
+  e: E,
+  pi: PI,
+} as const;
+
+export { constants, PI, E };

@@ -1,6 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
   "rules": {
-    "no-eval": "error"
+    "no-eval": "error",
+    "typescript/no-unnecessary-type-assertion": "error"
   }
 }

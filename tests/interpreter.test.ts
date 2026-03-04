@@ -226,6 +226,22 @@ describe("evaluate", () => {
     expect(calculate("abs(-2)")).toBe("2");
   });
 
+  it("should handle floor function", () => {
+    expect(calculate("floor(1)")).toBe("1");
+    expect(calculate("floor(1.5)")).toBe("1");
+    expect(calculate("floor(-1.5)")).toBe("-2");
+    expect(calculate("floor(pi)")).toBe("3");
+    expect(calculate("floor(e)")).toBe("2");
+  });
+
+  it("should handle ceil function", () => {
+    expect(calculate("ceil(1)")).toBe("1");
+    expect(calculate("ceil(1.5)")).toBe("2");
+    expect(calculate("ceil(-1.5)")).toBe("-1");
+    expect(calculate("ceil(pi)")).toBe("4");
+    expect(calculate("ceil(e)")).toBe("3");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
@@ -360,7 +376,7 @@ describe("evaluate - error handling", () => {
   it("should throw MaximumPrecisionError for very large scale", () => {
     const hugeDecimal = "0." + "0".repeat(100_000) + "1";
     expect(() => calculate(hugeDecimal)).toThrow(MaximumPrecisionError);
-  });
+  }, 200);
 
   it("should throw OverflowError for very large factorial", () => {
     expect(() => calculate("(1e9)!")).toThrow(OverflowError);
@@ -382,7 +398,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
       const expression = "1 + ".repeat(numbers) + "0";
       it(`should handle adding ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
-      }, 10_000);
+      }, 2000);
     };
     getTest(100);
     getTest(1000);
@@ -396,7 +412,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
       const expression = "1 * ".repeat(numbers) + "1";
       it(`should handle multiplying ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe("1");
-      });
+      }, 2000);
     };
     getTest(100);
     getTest(1000);
@@ -410,7 +426,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
       const expression = "1 * 1 + ".repeat(numbers) + "0";
       it(`should handle adding and multiplying ${numbers} numbers`, () => {
         expect(calculate(expression)).toBe(`${numbers}`);
-      }, 10_000);
+      }, 2000);
     };
     getTest(100);
     getTest(1000);
@@ -425,7 +441,7 @@ describe.skipIf(win32)("evaluate - large operations", () => {
       it(`should handle ${n} parentheses`, () => {
         expect(() => calculate(expression)).not.toThrow();
         expect(calculate(expression)).toBe("0");
-      });
+      }, 2000);
     };
     getTest(100);
     getTest(1000);
@@ -440,5 +456,5 @@ describe.skipIf(win32)("evaluate - large operations", () => {
     expect(() => calculate(`${hugeDecimal1} + ${hugeDecimal2}`)).not.toThrow(
       MaximumPrecisionError,
     );
-  }, 10_000);
+  }, 2000);
 });
