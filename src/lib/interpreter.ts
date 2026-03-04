@@ -16,6 +16,7 @@ import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
 import { simplify } from "./utils/simplify";
+import { sqrt } from "./utils/sqrt";
 import type { Value } from "./utils/types";
 
 const precedence = {
@@ -33,6 +34,7 @@ const precedence = {
   ABS_FN: 8,
   CEIL_FN: 8,
   FLOOR_FN: 8,
+  SQRT_FN: 8,
   FACTORIAL: 10,
 } as const;
 
@@ -44,7 +46,8 @@ function isUnaryOperation(op: StackOp) {
     op === "UNARY_MINUS" ||
     op === "ABS_FN" ||
     op === "CEIL_FN" ||
-    op === "FLOOR_FN"
+    op === "FLOOR_FN" ||
+    op === "SQRT_FN"
   );
 }
 
@@ -104,6 +107,10 @@ export function evaluate(
         }
         case "FLOOR_FN": {
           values.push({ n: floor(right), d: 1n });
+          return;
+        }
+        case "SQRT_FN": {
+          values.push(sqrt(right));
           return;
         }
       }
@@ -439,6 +446,10 @@ export function evaluate(
           }
           case "floor": {
             pushOpWithPrecedence("FLOOR_FN", token.pos);
+            break;
+          }
+          case "sqrt": {
+            pushOpWithPrecedence("SQRT_FN", token.pos);
             break;
           }
         }
