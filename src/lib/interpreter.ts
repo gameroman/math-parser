@@ -51,6 +51,14 @@ function isUnaryOperation(op: StackOp) {
   );
 }
 
+function getConst(id: NonNullable<Value["c"]>): Value {
+  const c = constants[id];
+  return {
+    n: BigInt(c.replace(".", "")),
+    d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
+  };
+}
+
 /**
  * Maximum allowed precision
  */
@@ -340,11 +348,7 @@ export function evaluate(
         if (format === "precise") {
           values.push({ n: 1n, d: 1n, c: token.id });
         } else {
-          const c = constants[token.id];
-          values.push({
-            n: BigInt(c.replace(".", "")),
-            d: 10n ** BigInt(c.length - c.indexOf(".") - 1),
-          });
+          values.push(getConst(token.id));
         }
         break;
       }
