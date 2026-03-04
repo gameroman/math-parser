@@ -262,6 +262,12 @@ describe("evaluate", () => {
     expect(calculate("ceil(e)")).toBe("3");
   });
 
+  it("should handle sqrt function", () => {
+    expect(calculate("sqrt(0)")).toBe("0");
+    expect(calculate("sqrt(1)")).toBe("1");
+    expect(calculate("ceil(16)")).toBe("4");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
