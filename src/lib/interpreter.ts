@@ -16,6 +16,7 @@ import { floor } from "./utils/floor";
 import { gcd } from "./utils/gcd";
 import { mod } from "./utils/mod";
 import { multiply } from "./utils/multiply";
+import { nthRoot } from "./utils/nthroot";
 import { simplify } from "./utils/simplify";
 import { sqrt } from "./utils/sqrt";
 import type { Value } from "./utils/types";
@@ -247,7 +248,15 @@ export function evaluate(
           break;
         }
 
-        if (normalizedExponent.d === 2n) {
+        if (lN === lD && lC === undefined) {
+          resN = 1n;
+          resD = 1n;
+          break;
+        }
+
+        const exponentD = normalizedExponent.d;
+
+        if (exponentD === 2n) {
           const basePowerN = lN ** exponent;
           const basePowerD = lD ** exponent;
 
@@ -262,10 +271,20 @@ export function evaluate(
           break;
         }
 
-        if (normalizedExponent.d !== 1n) {
-          throw new InterpreterError(
-            `Fractional exponents ${normalizedExponent.n}/${normalizedExponent.d} are not supported yet`,
+        if (exponentD !== 1n) {
+          const basePowerN = lN ** exponent;
+          const basePowerD = lD ** exponent;
+
+          const rootResult = nthRoot(
+            { n: basePowerN, d: basePowerD },
+            exponentD,
+            format === "precise",
           );
+
+          resN = rootResult.n;
+          resD = rootResult.d;
+          resC = rootResult.c;
+          break;
         }
 
         let baseN = lN;
@@ -292,6 +311,7 @@ export function evaluate(
         ) {
           throw new OverflowError();
         }
+
         if (!lC) {
           resN = baseN ** exponent;
           resD = baseD ** exponent;

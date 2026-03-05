@@ -206,6 +206,15 @@ describe("evaluate", () => {
     expect(calculate("0^0.5")).toBe("0");
     expect(calculate("0^(1/3)")).toBe("0");
     expect(calculate("0^(2/3)")).toBe("0");
+    expect(calculate("0 ^ 1e100")).toBe("0");
+  });
+
+  it("should handle exponentiation of 1", () => {
+    expect(calculate("1^0")).toBe("1");
+    expect(calculate("1^1")).toBe("1");
+    expect(calculate("1^0.5")).toBe("1");
+    expect(calculate("1^(1/3)")).toBe("1");
+    expect(calculate("1 ^ 1e100")).toBe("1");
   });
 
   it("should handle a simple remainder division", () => {
@@ -291,6 +300,14 @@ describe("evaluate", () => {
     expect(calculate("sqrt(9/4)", { format: "precise" })).toBe("3/2");
     expect(calculate("(4/9) ^ (1/2)", { format: "precise" })).toBe("2/3");
     expect(calculate("(9/4) ^ (1/2)", { format: "precise" })).toBe("3/2");
+  });
+
+  it("should handle fractional exponentiation", () => {
+    expect(calculate("8 ^ (1/3)")).toBe("2");
+    expect(calculate("8 ^ (2/3)")).toBe("4");
+    expect(calculate("32 ^ 0.2")).toBe("2");
+    expect(calculate("343 ^ (1/3)")).toBe("7");
+    expect(calculate("216 ^ (4/3)")).toBe("1296");
   });
 
   it("should handle implicit multiplication with pipe operator", () => {
