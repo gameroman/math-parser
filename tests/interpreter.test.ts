@@ -206,6 +206,15 @@ describe("evaluate", () => {
     expect(calculate("0^0.5")).toBe("0");
     expect(calculate("0^(1/3)")).toBe("0");
     expect(calculate("0^(2/3)")).toBe("0");
+    expect(calculate("0 ^ 1e100")).toBe("0");
+  });
+
+  it("should handle exponentiation of 1", () => {
+    expect(calculate("1^0")).toBe("1");
+    expect(calculate("1^1")).toBe("1");
+    expect(calculate("1^0.5")).toBe("1");
+    expect(calculate("1^(1/3)")).toBe("1");
+    expect(calculate("1 ^ 1e100")).toBe("1");
   });
 
   it("should handle a simple remainder division", () => {

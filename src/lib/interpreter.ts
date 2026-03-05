@@ -248,6 +248,12 @@ export function evaluate(
           break;
         }
 
+        if (lN === lD && lC === undefined) {
+          resN = 1n;
+          resD = 1n;
+          break;
+        }
+
         const exponentD = normalizedExponent.d;
 
         if (exponentD === 2n) {
