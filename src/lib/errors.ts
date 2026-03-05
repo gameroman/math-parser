@@ -13,13 +13,13 @@ class GenericMathErrror extends Error {
 
 export class LexerError extends GenericMathErrror {
   constructor(message: string, pos: number) {
-    super(`LexerError`, message, pos);
+    super("LexerError", message, pos);
   }
 }
 
 export class InterpreterError extends GenericMathErrror {
   constructor(message: string, pos?: number) {
-    super(`InterpreterError`, message, pos);
+    super("InterpreterError", message, pos);
   }
 }
 
@@ -33,7 +33,7 @@ export class MaximumPrecisionError extends InterpreterError {
 
 export class OverflowError extends InterpreterError {
   constructor() {
-    super(`Overflow Error`);
+    super("Overflow");
   }
 }
 
@@ -69,7 +69,7 @@ export class InsufficientOperandsError extends InterpreterError {
 
 export class ParserError extends GenericMathErrror {
   constructor(message: string, pos: number) {
-    super(`ParserError`, message, pos);
+    super("ParserError", message, pos);
   }
 }
 
