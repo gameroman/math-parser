@@ -293,6 +293,14 @@ describe("evaluate", () => {
     expect(calculate("(9/4) ^ (1/2)", { format: "precise" })).toBe("3/2");
   });
 
+  it("should handle fractional exponentiation", () => {
+    expect(calculate("8 ^ (1/3)")).toBe("2");
+    expect(calculate("8 ^ (2/3)")).toBe("4");
+    expect(calculate("32 ^ 0.2")).toBe("2");
+    expect(calculate("343 ^ (1/3)")).toBe("7");
+    expect(calculate("216 ^ (4/3)")).toBe("1296");
+  });
+
   it("should handle implicit multiplication with pipe operator", () => {
     expect(calculate("2|2|")).toBe("4");
     expect(calculate("2|-2|")).toBe("4");
